@@ -1,12 +1,11 @@
 //
-//  Utility.swift
+//  Bundle+Extension.swift
 //  NovelReader
 //
-//  Created by Praveen Prabhakar on 9/2/24.
-//  Copyright (c) 2024 Praveen P. All rights reserved.
+//  Created by Praveen Prabhakar on 2/16/25.
 //
 
-import Foundation
+import SwiftUI
 
 extension Bundle {
     private final class Utility { }

@@ -25,11 +25,15 @@ public class SwiftModelContainer {
 
 private extension SwiftModelContainer {
     static func modelContainer(storeURL: URL) throws -> ModelContainer {
-        let config = ModelConfiguration(url: storeURL)
         do {
-            let schema = Schema([VisualContent.self])
-            let config = ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none)
-            return try ModelContainer(for: schema, configurations: config)
+            // CMS Content
+            let contentConfig = ModelSchemas.contentConfiguration(storeURL)
+            // Service Config
+            let serviceConfig = ModelSchemas.serviceConfiguration(storeURL)
+            // All Schema
+            let schema = Schema(ModelSchemas.schemasTypes)
+            // Model Container with allSchemas
+            return try ModelContainer(for: schema, configurations: [contentConfig, serviceConfig])
         } catch {
             debugPrint(error.localizedDescription)
             throw NSError(domain: "Failed to configure SwiftData container.", code: 500)

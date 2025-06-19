@@ -6,7 +6,6 @@
 //  Copyright (c) 2022 Praveen P. All rights reserved.
 //
 
-import ContentManager
 import SwiftData
 import SwiftUI
 

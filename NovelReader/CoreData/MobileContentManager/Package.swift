@@ -10,9 +10,8 @@ let package = Package(
         .library(name: "MobileContentManager", targets: ["ContentManager"])
     ],
     targets: [
-        .target(name: "ContentManager"),
-        .testTarget(
-            name: "ContentManagerTests",
-            dependencies: ["ContentManager"])
+        .target(name: "Networking"),
+        .target(name: "ContentManager", dependencies: ["Networking"]),
+        .testTarget(name: "ContentManagerTests", dependencies: ["ContentManager"])
     ]
 )

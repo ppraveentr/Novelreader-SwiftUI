@@ -2,59 +2,59 @@
 //  NovelView.swift
 //  NovelReader
 //
-//  Created by Praveen Prabhakar on 26/10/22.
-//  Copyright (c) 2022 Praveen P. All rights reserved.
+//  Created by Praveen Prabhakar on 2/16/25.
 //
 
 import ContentManager
-import SwiftData
 import SwiftUI
 
 struct NovelView: View {
-    enum DataConstants: String {
-        case titleText = "NovelView.Title"
-        case searchPrompt = "NovelView.SearchPrompt"
-
-        var content: String {
-            self.rawValue.localized
-        }
-    }
-
-    @Environment(\.modelContext) var modelContext
-    @Query var destinations: [VisualContent]
-
-    @State
-    private var searchText: String = ""
+    var novel: NovelModel
 
     var body: some View {
         VStack {
-            Text(DataConstants.titleText.content)
-            ForEach(destinations) { destination in
-                VStack(alignment: .leading) {
-                    Text(destination.name)
+            HStack {
+                // Thumbnail image in the list row
+                NRImageView(imageUrl: novel.coverImageUrl)
+                // Novel information: title and author are shown in the list row
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(novel.name)
                         .font(.headline)
-                    Text(destination.content)
-                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.leading)
+                    // Author
+                    if let author = novel.author {
+                        Text("By \(author)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.leading)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Spacer()
+                // Optional: Show last chapter info in a smaller font
+                if let lastChapter = novel.lastChapter {
+                    Text(lastChapter)
+                        .font(.caption)
+                        .foregroundColor(.blue)
                 }
             }
-        }
-        .toolbar {
-            Button("Add Samples", action: addSamples)
-        }
-        .searchable(text: $searchText,
-                    placement: .navigationBarDrawer(displayMode: .automatic),
-                    prompt: DataConstants.searchPrompt.content)
-    }
+            .frame(maxWidth: .infinity)
+            .padding(.edgePadding)
 
-    func addSamples() {
-        let model = VisualContent(name: "dsd", lang: "Sds", content: "sds", version: 1.0)
-        modelContext.insert(model)
-        try? modelContext.save()
+            // Divider to separate rows
+            Divider()
+                .padding(.edgePadding)
+        }
     }
 }
 
-// MARK: Preview
-
 #Preview {
-    NovelView()
+    let model = {
+        let novel = NovelModel(identifier: "sds", name: "sds")
+        novel.author = "Author"
+        novel.lastChapter = "2165 Chapters"
+        return novel
+    }()
+    return NovelView(novel: model)
 }

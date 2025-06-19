@@ -47,7 +47,7 @@ private extension Destinations {
     var contentView: some View {
         switch self {
         case .home:
-            NovelView()
+            NovelListView()
         case .profile:
             ProfileView()
         case .libary:
