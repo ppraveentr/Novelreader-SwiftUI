@@ -55,12 +55,8 @@ struct NovelListView: View {
             }
         }
         .navigationTitle(DataConstants.titleText.content)
-//        .toolbar {
-//            Button("Add Samples", action: addSamples)
-//        }
-        .searchable(text: $searchText,
-                    placement: .navigationBarDrawer(displayMode: .always),
-                    prompt: DataConstants.searchPrompt.content)
+        .searchable(text: $searchText)
+        .searchToolbarBehavior(.minimize)
     }
 }
 

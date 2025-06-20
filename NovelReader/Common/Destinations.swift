@@ -8,16 +8,17 @@
 
 import SwiftUI
 
-enum Destinations: String, CaseIterable, Identifiable {
-    case home = "Novel", libary = "Libary", profile = "Profile"
+enum Destinations: String, CaseIterable, Identifiable, Hashable {
+    case home = "Novel", libary = "Libary", profile = "Profile", search = "Search"
 
     var id: String { self.rawValue }
 
     // For horizontalSizeClass == .compact
     static func tabBarView(_ selection: Binding<Destinations>) -> some View {
         TabView(selection: selection) {
-            ForEach(Destinations.allCases, id: \.self) { $0.navigationView }
+            ForEach(Destinations.allCases, id: \.self) { $0.tabView }
         }
+        .tabBarMinimizeBehavior(.onScrollDown)
     }
 
     // For all others
@@ -32,6 +33,14 @@ enum Destinations: String, CaseIterable, Identifiable {
 }
 
 private extension Destinations {
+    var tabView: Tab<Destinations, some View, some View> {
+        Tab(value: self, role: tabRole) { navigationView } label: { tabBarLabel }
+    }
+
+    var tabRole: TabRole? {
+        self == .search ? .search : nil
+    }
+
     var tabBarLabel: some View {
         switch self {
         case .home:
@@ -40,6 +49,8 @@ private extension Destinations {
             Label(id, systemImage: "person")
         case .libary:
             Label(id, systemImage: "books.vertical.fill")
+        case .search:
+            Label(id, systemImage: "magnifyingglass")
         }
     }
 
@@ -52,6 +63,8 @@ private extension Destinations {
             ProfileView()
         case .libary:
             LibaryView()
+        case .search:
+            Text("Search")
         }
     }
 
@@ -59,7 +72,8 @@ private extension Destinations {
     var navigationView: some View {
         NavigationView {
             contentView
-        }.tabItem { tabBarLabel }
+        }
+        .tabItem { tabBarLabel }
         .tag(self)
     }
 

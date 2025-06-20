@@ -11,7 +11,6 @@ import SwiftUI
 
 struct NovelDetailView: View {
     let novel: NovelModel
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -22,32 +21,51 @@ struct NovelDetailView: View {
                     .fontWeight(.heavy)
                     .foregroundColor(.primary)
                     .fixedSize(horizontal: false, vertical: true)
-                if let author = novel.author {
-                    HStack(spacing: 4) {
-                        Image(systemName: "person.fill")
-                            .foregroundColor(.secondary)
-                        Text(author)
-                            .font(.title3)
-                            .foregroundColor(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
+                author()
                 Divider()
-                if let lastChapter = novel.lastChapter {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Last Chapter")
-                            .font(.headline)
-                        Text(lastChapter)
-                            .font(.body)
-                            .foregroundColor(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
+                lastChapter()
                 Spacer()
             }
             .padding()
         }
     }
+}
+
+fileprivate extension NovelDetailView {
+    func lastChapter() -> some View {
+        Group {
+            if let lastChapter = novel.lastChapter {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Last Chapter")
+                        .font(.headline)
+                    Text(lastChapter)
+                        .font(.body)
+                        .foregroundColor(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            } else {
+                EmptyView()
+            }
+        }
+    }
+
+    func author() -> some View {
+        Group {
+            if let author = novel.author {
+                HStack(spacing: 4) {
+                    Image(systemName: "person.fill")
+                        .foregroundColor(.secondary)
+                    Text(author)
+                        .font(.title3)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            } else {
+                EmptyView()
+            }
+        }
+    }
+
 }
 
 // MARK: Preview
