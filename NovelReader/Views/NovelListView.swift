@@ -22,6 +22,7 @@ struct NovelListView: View {
 
     @Environment(\.modelContext) var modelContext
     @State private var searchText: String = ""
+    @State private var showingProfile = false
 
     // Keep the initial query separate.
     @Query(sort: \NovelModel.name)
@@ -41,8 +42,8 @@ struct NovelListView: View {
     var body: some View {
         NRScrollView {
             ForEach(filteredNovels, id: \.identifier) { novel in
-                NavigationLink(destination: NovelDetailView(novel: novel)) {
-                    NovelView(novel: novel)
+                NavigationLink(destination: BookDetailView(novel: novel)) {
+                    BookCellView(novel: novel)
                 }
             }
         }
@@ -57,6 +58,20 @@ struct NovelListView: View {
         .navigationTitle(DataConstants.titleText.content)
         .searchable(text: $searchText)
         .searchToolbarBehavior(.minimize)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    showingProfile = true
+                }, label: {
+                    Image(systemName: "person.circle")
+                        .imageScale(.large)
+                })
+                .accessibilityLabel("User Profile")
+            }
+        }
+        .sheet(isPresented: $showingProfile) {
+            ProfileView()
+        }
     }
 }
 

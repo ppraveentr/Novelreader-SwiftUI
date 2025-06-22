@@ -9,7 +9,7 @@
 import SwiftUI
 
 enum Destinations: String, CaseIterable, Identifiable, Hashable {
-    case home = "Novel", libary = "Libary", profile = "Profile", search = "Search"
+    case home = "Novel", libary = "Libary", search = "Search"
 
     var id: String { self.rawValue }
 
@@ -24,7 +24,7 @@ enum Destinations: String, CaseIterable, Identifiable, Hashable {
     // For all others
     static func sideBarView(_ selection: Binding<Destinations>) -> some View {
         let _selection: Binding<Destinations?> = Binding(selection)
-        return NavigationView {
+        return NavigationStack {
             List {
                 ForEach(Destinations.allCases, id: \.self) { $0.navigationLink(_selection) }
             }
@@ -45,8 +45,6 @@ private extension Destinations {
         switch self {
         case .home:
             Label(id, systemImage: "house.fill")
-        case .profile:
-            Label(id, systemImage: "person")
         case .libary:
             Label(id, systemImage: "books.vertical.fill")
         case .search:
@@ -59,8 +57,6 @@ private extension Destinations {
         switch self {
         case .home:
             NovelListView()
-        case .profile:
-            ProfileView()
         case .libary:
             LibaryView()
         case .search:
@@ -70,7 +66,7 @@ private extension Destinations {
 
     @ViewBuilder
     var navigationView: some View {
-        NavigationView {
+        NavigationStack {
             contentView
         }
         .tabItem { tabBarLabel }

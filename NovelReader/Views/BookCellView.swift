@@ -8,14 +8,14 @@
 import ContentManager
 import SwiftUI
 
-struct NovelView: View {
+struct BookCellView: View {
     var novel: NovelModel
 
     var body: some View {
         VStack {
             HStack {
                 // Thumbnail image in the list row
-                NRImageView(imageUrl: novel.coverImageUrl)
+                NRImageView(imageUrl: novel.imageUrl)
                 // Novel information: title and author are shown in the list row
                 VStack(alignment: .leading, spacing: 4) {
                     Text(novel.name)
@@ -56,5 +56,5 @@ struct NovelView: View {
         novel.lastChapter = "2165 Chapters"
         return novel
     }()
-    return NovelView(novel: model)
+    return BookCellView(novel: model)
 }

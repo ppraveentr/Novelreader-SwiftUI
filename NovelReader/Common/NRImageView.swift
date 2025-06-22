@@ -23,7 +23,6 @@ struct NRImageView: View {
                     .resizable()
                     .scaledToFill()
                     .frame(width: 80, height: 120)
-                    .clipped()
                     .cornerRadius(8)
                     .shadow(radius: 3)
             case .failure:
