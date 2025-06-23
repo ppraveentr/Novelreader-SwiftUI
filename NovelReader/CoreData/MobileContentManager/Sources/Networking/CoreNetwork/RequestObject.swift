@@ -16,7 +16,7 @@ public enum ReqeustType: String, Codable {
     case PUT, FORM, HEAD, DELETE, PATCH, OPTIONS, TRACE, CONNECT
      */
 
-    func stringValue() -> String {
+    public func stringValue() -> String {
 //        if self == .FORM {
 //            return ReqeustType.POST.rawValue
 //        }
@@ -38,16 +38,14 @@ public protocol RequestObject {
     var baseURL: String { get }
     var path: String { get }
 
-    var requestQuery: JSON? { get set }
-    var requestBody: JSON? { get set }
-    var responseBody: JSON? { get }
+    var requestQuery: [URLQueryItem]? { get set }
+    var requestBody: Codable? { get set }
+    var responseBody: Codable? { get }
 
     // JSON
     func jsonModel(_ data: Codable) throws -> JSON?
     func jsonModelData(_ data: Codable) -> Data?
-    func jsonString(_ data: JSON) -> String?
-    // URL
-    func queryItems() -> [URLQueryItem]
+    func jsonString(_ data: Codable) -> String?
 }
 
 extension RequestObject {
@@ -60,7 +58,7 @@ extension RequestObject {
         return try? data.jsonContent() as? JSON
     }
 
-    public func jsonString(_ data: JSON) -> String? {
+    public func jsonString(_ data: Codable) -> String? {
         if let data = data as? Codable, var jsn = try? self.jsonModel(data) {
             jsn.stripNilElements()
             if JSONSerialization.isValidJSONObject(jsn),
@@ -72,7 +70,7 @@ extension RequestObject {
     }
 
     // Encode complex key/value objects in NSRULQueryItem pairs
-    private func queryItems(_ key: String, _ value: Any?) -> [URLQueryItem] {
+    public func queryItems(_ key: String, _ value: Any?) -> [URLQueryItem] {
         var result = [] as [URLQueryItem]
 
         if let dictionary = value as? [String: AnyObject] {
@@ -91,17 +89,6 @@ extension RequestObject {
             result.append(URLQueryItem(name: key, value: nil))
         }
         return result
-    }
-
-    // URL
-    public func queryItems() -> [URLQueryItem] {
-        guard let obj = self.requestQuery as? Codable, let json = try? jsonModel(obj) else { return [] }
-        var query: [URLQueryItem] = []
-        json.forEach { arg in
-            let val = queryItems(arg.key, arg.value)
-            query.append(contentsOf: val)
-        }
-        return query
     }
 
     // FORM

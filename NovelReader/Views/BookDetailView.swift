@@ -15,6 +15,7 @@ enum BookDetailRoute: Hashable {
 
 struct BookDetailView: View {
     let novel: NovelModel
+    @Environment(\.modelContext) var modelContext
     @State private var selectedTab = 0
 
     var body: some View {
@@ -26,7 +27,13 @@ struct BookDetailView: View {
             }
             .padding()
         }
-        .navigationTitle(novel.name)
+        .task {
+            do {
+                try await NovelServices.syncNovelDetails(novel, modelContext: modelContext)
+            } catch {
+                debugPrint("Failed to sync novel Details: \(error)")
+            }
+        }
         .toolbar(.hidden, for: .tabBar)
     }
 }
@@ -35,17 +42,24 @@ fileprivate extension BookDetailView {
 
     @ViewBuilder
     func boodTitle() -> some View {
-        HStack(spacing: 8) {
-            // Thumbnail image in the list row
-            NRImageView(imageUrl: novel.imageUrl)
-            VStack(alignment: .leading, spacing: 4) {
-                author()
-                RatingView(rating: "1", reviews: "3231")
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                // Thumbnail image in the list row
+                NRImageView(imageUrl: novel.imageUrl)
+                // Novel Title
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(novel.name)
+                        .font(.title)
+                        .bold()
+                        .foregroundColor(.primary)
+                    author()
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity)
+            .padding(.edgePadding)
+            RatingView(rating: "1", reviews: "3231")
         }
-        .frame(maxWidth: .infinity)
-        .padding(.edgePadding)
     }
 
     @ViewBuilder
@@ -61,12 +75,8 @@ fileprivate extension BookDetailView {
             if selectedTab == 0 {
                 Text("Synopsis")
                     .font(.headline)
-                Text("After being betrayed by her fiancé and best friend...")
+                Text(novel.summary ?? "")
                     .font(.body)
-                    .lineLimit(4)
-                Button("Read More") {
-                    // action to expand synopsis
-                }
             } else {
                 BookDetailCard(
                     author: "Passion Honey, 百香蜜",
@@ -81,9 +91,9 @@ fileprivate extension BookDetailView {
 
     func lastChapter() -> some View {
         Group {
-            if let lastChapter = novel.lastChapter {
+            if let lastChapter = novel.lastChapter, let chapters = novel.chapters {
                 NavigationLink {
-                    ChapterListView(novel: novel)
+                    ChapterListView(novel: chapters)
                 } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 8) {

@@ -7,39 +7,31 @@
 
 import ContentManager
 import SwiftUI
-
-// MARK: - Data Model
-
-struct Chapter: Identifiable {
-    let id = UUID()
-    let chapterNumber: Int
-    let title: String
-}
+import SwiftData
 
 // MARK: - Paginated List View
 
 struct ChapterListView: View {
-    let novel: NovelModel
-    // All chapters (3000) are precomputed.
-    private let allChapters: [Chapter] = (1...3000).map {
-        Chapter(chapterNumber: $0, title: "Chapter \($0)")
+    var novel: NovelChapterPaginationModel
+    var chapters: [NovelChapterModel] {
+        novel.chapters.sorted { $0.index < $1.index }
     }
 
     // State for the currently displayed chapters.
-    @State private var displayedChapters: [Chapter] = []
+    @State private var displayedChapters: [NovelChapterModel] = []
     @State private var currentPage: Int = 0
-    private let itemsPerPage: Int = 100
+    private let itemsPerPage: Int = 5 // Adjusted page size
 
     @State private var searchText: String = ""
     @State private var isLoadingMore: Bool = false
 
-    var filteredChapters: [Chapter] {
+    var filteredChapters: [NovelChapterModel] {
         if searchText.isEmpty {
             return displayedChapters
         } else {
-            return allChapters.filter { chapter in
-                chapter.title.localizedCaseInsensitiveContains(searchText) ||
-                String(chapter.chapterNumber).contains(searchText)
+            return chapters.filter { chapter in
+                chapter.name.localizedCaseInsensitiveContains(searchText) ||
+                String(chapter.index).contains(searchText)
             }
         }
     }
@@ -47,7 +39,7 @@ struct ChapterListView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             List {
-                ForEach(filteredChapters) { chapter in
+                ForEach(filteredChapters, id: \.identifier) { chapter in
                     NavigationLink(destination: ChapterDetailView(chapter: chapter)) {
                         ChapterRowView(chapter: chapter)
                     }
@@ -56,7 +48,7 @@ struct ChapterListView: View {
                     }
                 }
 
-                if searchText.isEmpty && displayedChapters.count < allChapters.count && isLoadingMore {
+                if searchText.isEmpty && displayedChapters.count < chapters.count && isLoadingMore {
                     HStack {
                         Spacer()
                         ProgressView()
@@ -66,6 +58,13 @@ struct ChapterListView: View {
                 }
             }
             .listStyle(PlainListStyle())
+        }
+        .task {
+//            do {
+//                try await NovelServices.syncNovelChapterList(novel, page: <#T##Int#>, modelContext: <#T##ModelContext#>)
+//            } catch {
+//                debugPrint("Failed to sync novel Details: \(error)")
+//            }
         }
         .onAppear {
             // Load the initial page.
@@ -78,7 +77,7 @@ struct ChapterListView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Group {
                     if searchText.isEmpty {
-                        Text("(\(allChapters.count))")
+                        Text("(\(chapters.count))")
                     } else {
                         Text("(\(filteredChapters.count))")
                     }
@@ -104,16 +103,16 @@ struct ChapterListView: View {
     private func loadMoreChapters() {
         guard !isLoadingMore else { return }
         let startIndex = currentPage * itemsPerPage
-        guard startIndex < allChapters.count else { return }
+        guard startIndex < chapters.count else { return }
         isLoadingMore = true
-        let endIndex = min(startIndex + itemsPerPage, allChapters.count)
-        let newChapters = Array(allChapters[startIndex..<endIndex])
+        let endIndex = min(startIndex + itemsPerPage, chapters.count)
+        let newChapters = Array(chapters[startIndex..<endIndex])
         displayedChapters.append(contentsOf: newChapters)
         currentPage += 1
         isLoadingMore = false
     }
 
-    private func handleChapterAppear(_ chapter: Chapter) {
+    private func handleChapterAppear(_ chapter: NovelChapterModel) {
         guard searchText.isEmpty else { return }
         if chapter.id == displayedChapters.last?.id {
             loadMoreChapters()
@@ -121,18 +120,18 @@ struct ChapterListView: View {
     }
 }
 
-fileprivate struct ChapterRowView: View {
-    let chapter: Chapter
+private struct ChapterRowView: View {
+    let chapter: NovelChapterModel
     var body: some View {
         HStack {
             ZStack {
                 Circle()
                     .fill(Color.blue.opacity(0.15))
                     .frame(width: 34, height: 34)
-                Text("\(chapter.chapterNumber)")
+                Text("\(chapter.index)")
                     .font(.subheadline).foregroundColor(.blue)
             }
-            Text(chapter.title)
+            Text(chapter.name)
                 .font(.headline)
         }
         .padding(.vertical, 6)
@@ -141,12 +140,13 @@ fileprivate struct ChapterRowView: View {
 
 // MARK: - Preview
 
-#Preview {
-    let model = {
-        let novel = NovelModel(identifier: "sds", name: "sds")
-        novel.author = "Author"
-        novel.lastChapter = "2165 Chapters"
-        return novel
-    }()
-    return ChapterListView(novel: model)
-}
+//#Preview {
+//    let model: [NovelChapterModel] = {
+//        let novel = NovelModel(identifier: "sds", name: "sds")
+//        novel.author = "Author"
+//        novel.lastChapter = "2165 Chapters"
+//        novel.chapters = Array(1...2165).map(\.description)
+//        return novel.chapters
+//    }()
+//    return ChapterListView(chapters: model)
+//}

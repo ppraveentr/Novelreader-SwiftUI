@@ -15,9 +15,8 @@ struct RatingView: View {
         VStack(alignment: .leading) {
             HStack(spacing: 4) {
                 if let rating = rating, let value = Double(rating)?.rounded() {
-                    let intVal = Int(value/2)
-                    ForEach(1...5, id: \.self) { index in
-                        Image(systemName: index <= intVal ? "star.fill" : "star")
+                    ForEach(1...10, id: \.self) { index in
+                        Image(systemName: index <= Int(value) ? "star.fill" : "star")
                             .foregroundColor(.yellow)
                     }
                     Text(rating)

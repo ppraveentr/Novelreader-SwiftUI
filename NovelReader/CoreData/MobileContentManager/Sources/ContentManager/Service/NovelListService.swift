@@ -1,5 +1,5 @@
 //
-//  WebService.swift
+//  NovelListService.swift
 //  MobileContentManager
 //
 //  Created by Praveen Prabhakar on 2/21/25.
@@ -16,12 +16,12 @@ class NovelListService: RequestObject {
     var baseURL = "http://localhost:3000/"
     var path = "novel/list"
 
-    var requestBody: JSON?
-    var responseBody: JSON?
-    var requestQuery: JSON?
+    var requestBody: Codable?
+    var responseBody: Codable?
+    var requestQuery: [URLQueryItem]?
 
     struct NovelListResponse: ServiceModel {
-        var response: [NovelServiceModel]
+        var response: [ServiceNovelModel]
     }
 }
 
@@ -37,7 +37,11 @@ extension NovelListService {
                 return
             }
             DispatchQueue.main.async {
-                itemData.forEach { modelContext.insert(NovelModel(service: $0)) }
+                itemData.forEach {
+                    let model = NovelModel(service: $0)
+                    model.update(service: $0, context: modelContext)
+                    modelContext.insert(model)
+                }
                 try? modelContext.save()
             }
         } catch {

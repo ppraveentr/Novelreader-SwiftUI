@@ -21,14 +21,30 @@ public class NovelModel {
     public var coverImageUrl: URL?
     public var rating: String?
     public var lastUpdate: String?
-    public var genres: [GenresModel]?
+    public var genres: [String]?
     public var views: String?
     public var summary: String?
-    public var chapters: [NovelChapterModel]?
+    @Relationship(deleteRule: .cascade, inverse: \NovelChapterPaginationModel.novel)
+    public var chapters: NovelChapterPaginationModel?
     public var lastChapter: String?
 
     public init(identifier: String, name: String) {
         self.identifier = identifier
         self.name = name
+    }
+}
+
+@Model
+public class NovelChapterPaginationModel {
+    @Attribute(.unique) public private(set) var identifier: String
+    @Relationship var novel: NovelModel
+    @Relationship(deleteRule: .cascade, inverse: \NovelChapterModel.novelPagination)
+    public var chapters: [NovelChapterModel] = []
+    public var pageCount: Int = 1
+    public var currentPage: Int = 1
+
+    public init(novel: NovelModel) {
+        self.identifier = novel.identifier
+        self.novel = novel
     }
 }

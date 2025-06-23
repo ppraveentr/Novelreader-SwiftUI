@@ -10,27 +10,41 @@ import Networking
 
 public class WebService {
     func downloadData<T: Codable>(_ request: any RequestObject) async throws -> T {
-        let urlString = request.baseURL + request.path
-        guard let url = URL(string: urlString) else { throw NetworkError.badUrl }
-        let (data, response) = try await URLSession.shared.data(from: url)
+        guard var url = URL(string: request.baseURL) else { throw NetworkError.badUrl }
+        url = url.appending(path: request.path)
+
+        // Append query parameters if any
+        if let queryItems = request.requestQuery {
+            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+            components?.queryItems = queryItems
+            if let componentsURL = components?.url {
+                url = componentsURL
+            }
+        }
+
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = request.type.stringValue()
+
+        // For POST, encode body if available
+        if request.type == .POST {
+            if let body = request.requestBody as? Codable,
+               let data = request.jsonModelData(body) {
+                urlRequest.httpBody = data
+                urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            }
+        }
+
+        let (data, response) = try await URLSession.shared.data(for: urlRequest)
         guard let response = response as? HTTPURLResponse else { throw NetworkError.badResponse }
         guard response.statusCode >= 200 && response.statusCode < 300 else { throw NetworkError.badStatus }
-        guard let decodedResponse = try? JSONDecoder().decode(T.self, from: data) else {
-            throw NetworkError.failedToDecodeResponse
+        do {
+            let decodedResponse = try JSONDecoder().decode(T.self, from: data)
+            return decodedResponse
+        } catch {
+            #if DEBUG
+                print("Failed to decode response: \(error.localizedDescription)")
+            #endif
         }
-        return decodedResponse
-        /*
-         catch NetworkError.badUrl {
-         print("There was an error creating the URL")
-         } catch NetworkError.badResponse {
-         print("Did not get a valid response")
-         } catch NetworkError.badStatus {
-         print("Did not get a 2xx status code from the response")
-         } catch NetworkError.failedToDecodeResponse {
-         print("Failed to decode response into the given type")
-         } catch {
-         print("An error occured downloading the data")
-         }
-         */
+        throw NetworkError.failedToDecodeResponse
     }
 }

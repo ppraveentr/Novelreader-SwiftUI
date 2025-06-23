@@ -9,14 +9,14 @@ import ContentManager
 import SwiftUI
 
 struct ChapterDetailView: View {
-    let chapter: Chapter
+    let chapter: NovelChapterModel
 
     var body: some View {
         VStack(spacing: 16) {
-            Text(chapter.title)
+            Text(chapter.name)
                 .font(.largeTitle)
                 .bold()
-            Text("Chapter number: \(chapter.chapterNumber)")
+            Text("Chapter number: \(chapter.index)")
                 .font(.title2)
         }
         .toolbar(.hidden, for: .tabBar)
