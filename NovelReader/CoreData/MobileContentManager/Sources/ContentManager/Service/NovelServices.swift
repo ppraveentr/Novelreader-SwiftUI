@@ -5,30 +5,32 @@
 //  Created by Praveen Prabhakar on 6/18/25.
 //
 
-import SwiftData
+import Combine
 import Foundation
+import SwiftData
 
 public enum NovelServices {
     @MainActor
-    public static func syncNovelList(modelContext: ModelContext) async throws {
+    public static func syncNovelListPublisher(page: Int = 1, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         let listService = NovelListService()
-        await listService.refreshNovels(modelContext: modelContext)
+        listService.requestQuery = [URLQueryItem(name: "page", value: String(page))]
+        return listService.fetchNovelListPublisher(modelContext: modelContext)
     }
 
     @MainActor
-    public static func syncNovelDetails(_ novel: NovelModel, modelContext: ModelContext) async throws {
+    public static func syncNovelDetailsPublisher(_ novel: NovelModel, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         let detailService = NovelDetailService()
         let idQuery = URLQueryItem(name: "id", value: novel.identifier)
         detailService.requestQuery = [idQuery]
-        await detailService.refreshNovelDetail(novel, modelContext: modelContext)
+        return detailService.fetchNovelListPublisher(novel, modelContext: modelContext)
     }
 
     @MainActor
-    public static func syncNovelChapterList(_ novel: NovelModel, page: Int, modelContext: ModelContext) async throws {
+    public static func syncChapterListPublisher(_ novel: NovelModel, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         let chapterListService = NovelChapterListService()
         let idQuery = URLQueryItem(name: "id", value: novel.identifier)
-        let pageQuery = URLQueryItem(name: "page", value: "\(page)")
+        let pageQuery = URLQueryItem(name: "dataID", value: novel.novelDataId)
         chapterListService.requestQuery = [idQuery, pageQuery]
-        await chapterListService.refreshChapterList(novel, modelContext: modelContext)
+        return chapterListService.fetchChapterListPublisher(novel, modelContext: modelContext)
     }
 }

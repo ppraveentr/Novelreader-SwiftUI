@@ -28,8 +28,8 @@ private extension SwiftModelContainer {
         do {
             // CMS Content
             let contentConfig = ModelSchemas.contentConfiguration(storeURL)
-            // Service Config
-            let serviceConfig = ModelSchemas.serviceConfiguration(storeURL)
+            // Service Model Config
+            let serviceConfig = ModelSchemas.serviceConfiguration()
             // All Schema
             let schema = Schema(ModelSchemas.schemasTypes)
             // Model Container with allSchemas

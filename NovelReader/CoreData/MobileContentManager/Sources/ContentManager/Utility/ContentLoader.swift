@@ -36,6 +36,7 @@ enum ContentLoader {
             throw error
         }
         defaults.set(true, forKey: "isPreloaded")
+        debugPrint("Success: Preloading data for the first time: \(destURL.absoluteString)")
         return destURL
     }
 }

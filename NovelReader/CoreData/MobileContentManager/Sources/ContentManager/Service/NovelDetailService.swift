@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 import Networking
+import Combine
 
 class NovelDetailService: RequestObject {
     typealias ResponseType = NovelDetailResponse.Type
@@ -27,22 +28,23 @@ class NovelDetailService: RequestObject {
 
 extension NovelDetailService {
     @MainActor
-    func refreshNovelDetail(_ novel: NovelModel, modelContext: ModelContext) async {
-        do {
-            let webService = WebService()
-            let response: NovelDetailResponse = try await webService.downloadData(self)
-            let itemData = response.response
-            guard !itemData.identifier.isEmpty || !itemData.name.isEmpty || itemData.identifier == novel.identifier else {
-                debugPrint("No data received or failed to decode (NovelDetailService) response.")
-                return
+    func fetchNovelListPublisher(_ novel: NovelModel, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
+        let webService = WebService()
+        return webService.downloadDataPublisher(self)
+            .tryMap { (response: NovelDetailResponse) in
+                let itemData = response.response
+                guard !itemData.identifier.isEmpty || !itemData.name.isEmpty || itemData.identifier == novel.identifier else {
+                    debugPrint("NovelDetailService: No data received or failed to decode response.")
+                    throw NetworkError.failedToDecodeResponse
+                }
+                return itemData
             }
-            DispatchQueue.main.async {
+            .handleEvents(receiveOutput: { itemData in
                 novel.update(service: itemData, context: modelContext)
                 try? modelContext.save()
-            }
-        } catch {
-            debugPrint("Error fetching data (NovelDetailService)")
-            debugPrint(error.localizedDescription)
-        }
+            })
+            .map { _ in () }
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
     }
 }

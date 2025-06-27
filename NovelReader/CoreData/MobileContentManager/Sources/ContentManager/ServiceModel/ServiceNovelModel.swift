@@ -10,6 +10,7 @@ import SwiftData
 
 struct ServiceNovelModel: Codable {
     var identifier: String
+    var novelDataId: String?
     var name: String
     var author: String?
     var artist: String?
@@ -59,11 +60,12 @@ extension NovelModel {
 
     func update(service: ServiceNovelModel, context: ModelContext) {
         updateBasicProperties(from: service)
+        updateBookInfo(from: service)
         updateGenres(from: service)
         updateChapters(from: service, context: context)
     }
 
-    private func updateBasicProperties(from service: ServiceNovelModel) {
+    private func updateBookInfo(from service: ServiceNovelModel) {
         if let author = service.author {
             self.author = author
         }
@@ -76,6 +78,12 @@ extension NovelModel {
         if let status = service.status {
             self.status = status
         }
+        if let lastUpdate = service.lastUpdate {
+            self.lastUpdate = lastUpdate
+        }
+    }
+
+    private func updateBasicProperties(from service: ServiceNovelModel) {
         if let imageUrl = service.imageUrl.flatMap(URL.init(string:)) {
             self.imageUrl = imageUrl
         }
@@ -84,9 +92,6 @@ extension NovelModel {
         }
         if let rating = service.rating {
             self.rating = rating
-        }
-        if let lastUpdate = service.lastUpdate {
-            self.lastUpdate = lastUpdate
         }
         if let views = service.views {
             self.views = views

@@ -21,8 +21,8 @@ struct NRImageView: View {
             case .success(let image):
                 image
                     .resizable()
+                    .frame(width: 90, height: 140)
                     .scaledToFill()
-                    .frame(width: 80, height: 120)
                     .cornerRadius(8)
                     .shadow(radius: 3)
             case .failure:

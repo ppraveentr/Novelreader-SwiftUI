@@ -6,26 +6,30 @@
 //
 
 import Foundation
+import Combine
 import Networking
 
-public class WebService {
-    func downloadData<T: Codable>(_ request: any RequestObject) async throws -> T {
-        guard var url = URL(string: request.baseURL) else { throw NetworkError.badUrl }
-        url = url.appending(path: request.path)
-
+private extension URL {
+    mutating func appending(queryItems: [URLQueryItem]?) -> URL {
         // Append query parameters if any
-        if let queryItems = request.requestQuery {
-            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-            components?.queryItems = queryItems
-            if let componentsURL = components?.url {
-                url = componentsURL
-            }
+        guard let queryItems else { return self }
+        var components = URLComponents(url: self, resolvingAgainstBaseURL: false)
+        components?.queryItems = queryItems
+        return components?.url ?? self
+    }
+}
+
+public class WebService {
+    public func downloadDataPublisher<T: Codable>(_ request: any RequestObject) -> AnyPublisher<T, Error> {
+        guard var url = URL(string: request.baseURL) else {
+            return Fail(error: NetworkError.badUrl).eraseToAnyPublisher()
         }
+        url = url.appending(path: request.path)
+        url = url.appending(queryItems: request.requestQuery)
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = request.type.stringValue()
 
-        // For POST, encode body if available
         if request.type == .POST {
             if let body = request.requestBody as? Codable,
                let data = request.jsonModelData(body) {
@@ -34,17 +38,19 @@ public class WebService {
             }
         }
 
-        let (data, response) = try await URLSession.shared.data(for: urlRequest)
-        guard let response = response as? HTTPURLResponse else { throw NetworkError.badResponse }
-        guard response.statusCode >= 200 && response.statusCode < 300 else { throw NetworkError.badStatus }
-        do {
-            let decodedResponse = try JSONDecoder().decode(T.self, from: data)
-            return decodedResponse
-        } catch {
-            #if DEBUG
-                print("Failed to decode response: \(error.localizedDescription)")
-            #endif
-        }
-        throw NetworkError.failedToDecodeResponse
+        return URLSession.shared.dataTaskPublisher(for: urlRequest)
+            .subscribe(on: DispatchQueue.global(qos: .userInitiated))
+            .tryMap { result in
+                guard let response = result.response as? HTTPURLResponse else {
+                    throw NetworkError.badResponse
+                }
+                guard response.statusCode >= 200 && response.statusCode < 300 else {
+                    throw NetworkError.badStatus
+                }
+                return result.data
+            }
+            .decode(type: T.self, decoder: JSONDecoder())
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
     }
 }

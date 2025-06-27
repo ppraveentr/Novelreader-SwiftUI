@@ -13,6 +13,7 @@ import SwiftData
 public class NovelModel {
     @Attribute(.unique) public private(set) var identifier: String
     public var name: String
+    public var novelDataId: String?
     public var author: String?
     public var artist: String?
     public var source: String?

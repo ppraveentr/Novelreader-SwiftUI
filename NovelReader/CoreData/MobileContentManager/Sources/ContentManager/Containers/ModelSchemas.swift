@@ -36,7 +36,7 @@ enum ModelSchemas {
         Schema(Self.serviceSchemas)
     }
 
-    static func serviceConfiguration(_ storeURL: URL) -> ModelConfiguration {
+    static func serviceConfiguration() -> ModelConfiguration {
         ModelConfiguration(schema: serviceModelSchmeas, allowsSave: true, cloudKitDatabase: .none)
     }
 }

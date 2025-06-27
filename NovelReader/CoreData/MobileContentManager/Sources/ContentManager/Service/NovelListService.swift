@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 import SwiftData
 import Networking
 
@@ -27,26 +28,27 @@ class NovelListService: RequestObject {
 
 extension NovelListService {
     @MainActor
-    func refreshNovels(modelContext: ModelContext) async {
-        do {
-            let webService = WebService()
-            let response: NovelListResponse = try await webService.downloadData(self)
-            let itemData = response.response.filter { !$0.identifier.isEmpty && !$0.name.isEmpty }
-            guard !itemData.isEmpty else {
-                debugPrint("No data received or failed to decode response.")
-                return
+    func fetchNovelListPublisher(modelContext: ModelContext) -> AnyPublisher<Void, Error> {
+        let webService = WebService()
+        return webService.downloadDataPublisher(self)
+            .tryMap { (response: NovelListResponse) in
+                let itemData = response.response.filter { !$0.identifier.isEmpty && !$0.name.isEmpty }
+                guard !itemData.isEmpty else {
+                    debugPrint("NovelListService: No data received or failed to decode response.")
+                    throw NetworkError.failedToDecodeResponse
+                }
+                return itemData
             }
-            DispatchQueue.main.async {
+            .handleEvents(receiveOutput: { itemData in
                 itemData.forEach {
                     let model = NovelModel(service: $0)
                     model.update(service: $0, context: modelContext)
                     modelContext.insert(model)
                 }
                 try? modelContext.save()
-            }
-        } catch {
-            debugPrint("Error fetching data")
-            debugPrint(error.localizedDescription)
-        }
+            })
+            .map { _ in () }
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
     }
 }

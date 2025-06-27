@@ -17,17 +17,14 @@ struct BookCellView: View {
                 // Thumbnail image in the list row
                 NRImageView(imageUrl: novel.imageUrl)
                 // Novel information: title and author are shown in the list row
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: EdgeInsets.contentPadding) {
                     Text(novel.name)
                         .font(.headline)
                         .foregroundColor(.primary)
                         .multilineTextAlignment(.leading)
                     // Author
                     if let author = novel.author {
-                        Text("By \(author)")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.leading)
+                        AuthorView(author: author)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

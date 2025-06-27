@@ -13,22 +13,22 @@ struct RatingView: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            HStack(spacing: 4) {
+            HStack(spacing: EdgeInsets.contentPadding) {
                 if let rating = rating, let value = Double(rating)?.rounded() {
                     ForEach(1...10, id: \.self) { index in
                         Image(systemName: index <= Int(value) ? "star.fill" : "star")
                             .foregroundColor(.yellow)
                     }
                     Text(rating)
-                        .font(.subheadline)
+                        .font(.headline)
                         .foregroundColor(.gray)
                 }
             }
 
             if let reviews = reviews {
                 let count = formatReviewCount(reviews)
-                Text("(\(formatReviewCount(count)) reviews)")
-                    .font(.subheadline)
+                Text("\(count) reviews")
+                    .font(.headline)
                     .foregroundColor(.gray)
             }
         }
