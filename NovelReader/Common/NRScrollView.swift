@@ -12,6 +12,7 @@ struct NRScrollView<Content>: View where Content: View {
     private let axes: Axis.Set
     private let onBottomReached: (() -> Void)?
     @State private var isAtBottom = false
+    @State private var debounceWorkItem: DispatchWorkItem?
 
     init(_ axes: Axis.Set = .vertical, onBottomReached: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) {
         self.axes = axes
@@ -26,24 +27,7 @@ struct NRScrollView<Content>: View where Content: View {
                     content()
                     if onBottomReached != nil {
                         // Marker at the bottom
-                        GeometryReader { geo in
-                            Color.clear
-                                .frame(height: 1)
-                                .onAppear { isAtBottom = true }
-                                .onDisappear { isAtBottom = false }
-                                .onChange(of: geo.frame(in: .global).maxY) { _, newY in
-                                    let screenHeight = UIScreen.main.bounds.height
-                                    let atBottom = newY < screenHeight - 100
-                                    // Only fire on transition from not-at-bottom to at-bottom
-                                    if atBottom && !isAtBottom {
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                            onBottomReached?()
-                                        }
-                                    }
-                                    isAtBottom = atBottom
-                                }
-                        }
-                        .frame(height: 1)
+                        geomentryReader()
                     }
                 }
                 .scrollTargetLayout()
@@ -52,5 +36,34 @@ struct NRScrollView<Content>: View where Content: View {
             .scrollTargetBehavior(.viewAligned)
             .frame(maxWidth: .infinity)
         }
+    }
+
+    @ViewBuilder
+    func geomentryReader() -> some View {
+        // Marker at the bottom
+        GeometryReader { geo in
+            Color.clear
+                .frame(height: 1)
+                .onAppear { isAtBottom = true }
+                .onDisappear { isAtBottom = false }
+                .onChange(of: geo.frame(in: .global).maxY) { _, newY in
+                    update(newY)
+                }
+        }
+        .frame(height: 1)
+    }
+
+    func update(_ newY: CGFloat) {
+        let screenHeight = UIScreen.main.bounds.height
+        let atBottom = newY < screenHeight - 100
+        if atBottom && !isAtBottom {
+            debounceWorkItem?.cancel()
+            let workItem = DispatchWorkItem {
+                onBottomReached?()
+            }
+            debounceWorkItem = workItem
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: workItem)
+        }
+        isAtBottom = atBottom
     }
 }

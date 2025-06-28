@@ -13,7 +13,7 @@ public class NovelChapterModel {
     public var index: Int
     public var name: String
     public var content: String?
-    @Relationship var novelPagination: NovelChapterPaginationModel
+    @Relationship var novelPagination: NovelChapterPaginationModel?
 
     public init(identifier: String, index: Int, name: String, content: String?, novel: NovelChapterPaginationModel) {
         self.identifier = identifier

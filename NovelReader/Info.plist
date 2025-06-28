@@ -13,6 +13,13 @@
 				<key>SIncludesSubdomains</key>
 				<true/>
 			</dict>
+			<key>novelreader-nodejs.onrender.com</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>SIncludesSubdomains</key>
+				<true/>
+			</dict>
 		</dict>
 	</dict>
 	<key>UIBackgroundModes</key>

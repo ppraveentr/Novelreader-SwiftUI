@@ -10,11 +10,10 @@ import Foundation
 import SwiftData
 import Networking
 
-class NovelChapterListService: RequestObject {
+class NovelChapterListService: BaseNovelRequest {
     typealias ResponseType = NovelChapterListResponse.Type
 
     var type: ReqeustType { .GET }
-    var baseURL = "http://localhost:3000/"
     var path = "novel/chapter-list"
 
     var requestBody: Codable?
@@ -39,12 +38,11 @@ extension NovelChapterListService {
                 }
                 return itemData
             }
+            .receive(on: DispatchQueue.main)
             .handleEvents(receiveOutput: { itemData in
                 novel.updateChapterPagination(itemData, context: modelContext)
-                try? modelContext.save()
             })
             .map { _ in () }
-            .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
     }
 }

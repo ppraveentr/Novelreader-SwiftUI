@@ -9,6 +9,7 @@ import SwiftUI
 
 public enum ToolBarModifierType {
     case profileButton(actionBlock: () -> Void)
+    case saveNoveButton(_ isFavorite: Bool, actionBlock: () -> Void)
 }
 
 struct ToolBarModifier: ViewModifier {
@@ -19,21 +20,32 @@ struct ToolBarModifier: ViewModifier {
             switch type {
             case let .profileButton(actionBlock):
                 profileToobar(actionBlock)
+            case let .saveNoveButton(isFavorite, actionBlock):
+                saveNovelToobar(isFavorite, actionBlock: actionBlock)
             }
         }
     }
 
     @ToolbarContentBuilder func profileToobar(_ actionBlock: @escaping () -> Void) -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
-            Button(action: {
-                actionBlock()
-            }, label: {
-                Image(systemName: "person.circle")
+            Button(action: actionBlock, label: {
+                Image(systemName: "person.fill")
                     .imageScale(.large)
             })
             .accessibilityLabel("User Profile")
         }
     }
+
+    @ToolbarContentBuilder func saveNovelToobar(_ isFavorite: Bool, actionBlock: @escaping () -> Void) -> some ToolbarContent {
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Button(action: actionBlock) {
+                Image(systemName: isFavorite ? "heart.fill" : "heart")
+                    .foregroundColor(isFavorite ? .red : .primary)
+            }
+            .accessibilityLabel(isFavorite ? "Remove from favorites" : "Add to favorites")
+        }
+    }
+
 }
 
 extension View {

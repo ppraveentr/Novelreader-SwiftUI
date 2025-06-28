@@ -1,5 +1,5 @@
 //
-//  LibaryView.swift
+//  NovelView.swift
 //  NovelReader
 //
 //  Created by Praveen Prabhakar on 26/10/22.
@@ -20,40 +20,46 @@ struct LibaryView: View {
         }
     }
 
+    @Query var novels: [NovelModel]
     @Environment(\.modelContext) var modelContext
-    @State private var searchText: String = ""
     @State private var showingProfile = false
-    // Keep the initial query separate.
-    @Query private var allNovels: [NovelModel]
-
-    var filteredNovels: [NovelModel] {
-        allNovels.filter {
-            searchText.isEmpty || $0.name.localizedCaseInsensitiveContains(searchText) ||
-            $0.author?.localizedCaseInsensitiveContains(searchText) ?? false
-        }
-    }
+    @StateObject private var viewModel = LibaryViewModel()
 
     var body: some View {
-        NRScrollView {
-            ForEach(filteredNovels, id: \.identifier) { novel in
-                NavigationLink(destination: BookDetailView(novel: novel)) {
-                    BookCellView(novel: novel)
-                }
+        NRScrollView(onBottomReached: {
+//            viewModel.fetchNovels(modelContext: modelContext)
+        }, content: scrollContent)
+        .onAppear {
+            if novels.isEmpty {
+//             viewModel.fetchNovels(modelContext: modelContext)
             }
         }
-        .navigationTitle(DataConstants.titleText.content)
-        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
-        .searchToolbarBehavior(.minimize)
-        .scrollDismissesKeyboard(.automatic)
+        .navigationTitle(DataConstants.titleText.content + " \(novels.count)")
         .toolbarModifier(.profileButton { showingProfile = true })
         .sheet(isPresented: $showingProfile) {
             ProfileView()
         }
+        .refreshable {
+            viewModel.refreshNovels(modelContext: modelContext)
+        }
     }
-}
 
-// MARK: Preview
-
-#Preview {
-    LibaryView()
+    @ViewBuilder
+    func scrollContent() -> some View {
+        ForEach(novels, id: \.identifier) { novel in
+            NavigationLink(destination: BookDetailView(novel: novel).modelContext(modelContext)) {
+                BookCellView(novel: novel).modelContext(modelContext)
+            }
+        }
+        if viewModel.isLoading {
+            ProgressView()
+                .frame(maxWidth: .infinity)
+                .padding()
+        }
+        if let error = viewModel.error {
+            Text("Failed to load novels: \(error.localizedDescription)")
+                .foregroundColor(.red)
+                .padding()
+        }
+    }
 }

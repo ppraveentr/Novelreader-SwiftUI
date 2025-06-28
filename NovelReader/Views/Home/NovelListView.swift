@@ -20,8 +20,12 @@ struct NovelListView: View {
         }
     }
 
-    @Query var novels: [NovelModel]
-    @Environment(\.modelContext) var modelContext
+    // Use the object for localContainer
+    @EnvironmentObject private var localProvider: LocalContainerProvider
+    private var modelContext: ModelContext {
+        localProvider.container.mainContext
+    }
+
     @State private var showingProfile = false
     @StateObject private var viewModel = NovelListViewModel()
 
@@ -30,11 +34,11 @@ struct NovelListView: View {
             viewModel.fetchNovels(modelContext: modelContext)
         }, content: scrollContent)
         .onAppear {
-            if novels.isEmpty {
+            if viewModel.novels.isEmpty {
                 viewModel.fetchNovels(modelContext: modelContext)
             }
         }
-        .navigationTitle(DataConstants.titleText.content + " \(novels.count)")
+        .navigationTitle(DataConstants.titleText.content + " \(viewModel.novels.count)")
         .toolbarModifier(.profileButton { showingProfile = true })
         .sheet(isPresented: $showingProfile) {
             ProfileView()
@@ -42,23 +46,21 @@ struct NovelListView: View {
         .refreshable {
             viewModel.refreshNovels(modelContext: modelContext)
         }
+        .bannerOverlay(.error(viewModel.error)) {
+            viewModel.error = nil
+        }
     }
 
     @ViewBuilder
     func scrollContent() -> some View {
-        ForEach(novels, id: \.identifier) { novel in
-            NavigationLink(destination: BookDetailView(novel: novel)) {
-                BookCellView(novel: novel)
+        ForEach(viewModel.novels, id: \.identifier) { novel in
+            NavigationLink(destination: BookDetailView(novel: novel).modelContext(modelContext)) {
+                BookCellView(novel: novel).modelContext(modelContext)
             }
         }
         if viewModel.isLoading {
             ProgressView()
                 .frame(maxWidth: .infinity)
-                .padding()
-        }
-        if let error = viewModel.error {
-            Text("Failed to load novels: \(error.localizedDescription)")
-                .foregroundColor(.red)
                 .padding()
         }
     }

@@ -13,10 +13,12 @@ import SwiftUI
 public class PersistenceManager {
     let dbName: String
     public var contentManager: SwiftModelContainer?
+    public var localContentManager: LocalContainerProvider?
 
     public init(dbName: String) {
         self.dbName = dbName
         self.contentManager = try? SwiftModelContainer(dbName: dbName)
+        self.localContentManager = try? LocalContainerProvider()
     }
 }
 
@@ -31,9 +33,16 @@ private struct DBManagerModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         if let container = manager.contentManager?.container {
-            content
-                .modelContainer(container)
-                .environment(manager)
+            if let localContentManager = manager.localContentManager {
+                content
+                    .modelContainer(container)
+                    .environmentObject(localContentManager)
+                    .environment(manager)
+            } else {
+                content
+                    .modelContainer(container)
+                    .environment(manager)
+            }
         } else {
             content
                 .environment(manager)

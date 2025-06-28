@@ -18,6 +18,7 @@ struct BookDetailView: View {
     @Environment(\.modelContext) var modelContext
     @State private var selectedTab = 0
     @StateObject private var viewModel = BookDetailViewModel()
+    @State private var saved: Bool = false
 
     var body: some View {
         NRScrollView {
@@ -29,8 +30,18 @@ struct BookDetailView: View {
             pickerStyle()
         }
         .onAppear {
-            viewModel.fetchNovelAndChapters(novel, modelContext: modelContext)
+            Task {
+                viewModel.fetchNovelAndChapters(novel, modelContext: modelContext)
+            }
         }
+        .onDisappear {
+            viewModel.cancelServices()
+        }
+        .toolbarModifier(.saveNoveButton(novel.isFavorite) {
+            Task {
+                viewModel.favoriteBook(novel)
+            }
+        })
         .toolbar(.hidden, for: .tabBar)
     }
 }

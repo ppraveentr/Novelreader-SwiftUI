@@ -10,11 +10,10 @@ import Combine
 import SwiftData
 import Networking
 
-class NovelListService: RequestObject {
+class NovelListService: BaseNovelRequest {
     typealias ResponseType = NovelListResponse.Type
 
     var type: ReqeustType { .GET }
-    var baseURL = "http://localhost:3000/"
     var path = "novel/list"
 
     var requestBody: Codable?
@@ -28,7 +27,7 @@ class NovelListService: RequestObject {
 
 extension NovelListService {
     @MainActor
-    func fetchNovelListPublisher(modelContext: ModelContext) -> AnyPublisher<Void, Error> {
+    func fetchNovelListPublisher(name: String? = nil, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         let webService = WebService()
         return webService.downloadDataPublisher(self)
             .tryMap { (response: NovelListResponse) in
@@ -39,16 +38,16 @@ extension NovelListService {
                 }
                 return itemData
             }
+            .receive(on: DispatchQueue.main)
             .handleEvents(receiveOutput: { itemData in
                 itemData.forEach {
-                    let model = NovelModel(service: $0)
+                    let model = NovelModel(service: $0, name: name)
                     model.update(service: $0, context: modelContext)
                     modelContext.insert(model)
                 }
                 try? modelContext.save()
             })
             .map { _ in () }
-            .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
     }
 }

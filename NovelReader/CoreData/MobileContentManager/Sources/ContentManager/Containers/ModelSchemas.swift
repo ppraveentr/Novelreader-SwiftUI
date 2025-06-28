@@ -23,8 +23,22 @@ enum ModelSchemas {
     }
 
     static func contentConfiguration(_ storeURL: URL) -> ModelConfiguration {
-        ModelConfiguration(schema: contentSchmeas, url: storeURL, cloudKitDatabase: .none)
+        ModelConfiguration("cms", schema: contentSchmeas, url: storeURL, cloudKitDatabase: .none)
     }
+
+    // MARK: Local Model
+
+//    static let localSchemas: [any PersistentModel.Type] = [
+//        SearchNovelModel.self
+//    ]
+//
+//    static var localModelSchmeas: Schema {
+//        Schema(Self.localSchemas)
+//    }
+//
+//    static func localConfiguration() -> ModelConfiguration {
+//        ModelConfiguration(schema: localModelSchmeas, isStoredInMemoryOnly: false, cloudKitDatabase: .none)
+//    }
 
     // MARK: Service Model
 
@@ -36,7 +50,11 @@ enum ModelSchemas {
         Schema(Self.serviceSchemas)
     }
 
-    static func serviceConfiguration() -> ModelConfiguration {
-        ModelConfiguration(schema: serviceModelSchmeas, allowsSave: true, cloudKitDatabase: .none)
+    static func serviceConfiguration(allowsSaves: Bool = true) -> ModelConfiguration {
+        if allowsSaves {
+            ModelConfiguration("Server", schema: serviceModelSchmeas, allowsSave: true, cloudKitDatabase: .none)
+        } else {
+            ModelConfiguration("local", schema: serviceModelSchmeas, isStoredInMemoryOnly: false, cloudKitDatabase: .none)
+        }
     }
 }

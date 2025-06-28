@@ -10,11 +10,10 @@ import SwiftData
 import Networking
 import Combine
 
-class NovelDetailService: RequestObject {
+class NovelDetailService: BaseNovelRequest {
     typealias ResponseType = NovelDetailResponse.Type
 
     var type: ReqeustType { .GET }
-    var baseURL = "http://localhost:3000/"
     var path = "novel/novel-details"
 
     var requestBody: Codable?
@@ -39,12 +38,12 @@ extension NovelDetailService {
                 }
                 return itemData
             }
+            .receive(on: DispatchQueue.main)
             .handleEvents(receiveOutput: { itemData in
                 novel.update(service: itemData, context: modelContext)
                 try? modelContext.save()
             })
             .map { _ in () }
-            .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
     }
 }

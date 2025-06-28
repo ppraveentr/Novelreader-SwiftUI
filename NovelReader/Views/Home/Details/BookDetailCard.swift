@@ -31,10 +31,10 @@ struct DetailItem: View {
     var alignment: StackAlignment = .vStack
 
     var body: some View {
-        AlignedStack(alignment: .hStack) {
+        AlignedStack(.hStack) {
             Image(systemName: icon)
                 .foregroundColor(.accentColor)
-            AlignedStack(alignment: alignment, spacing: EdgeInsets.contentOffset) {
+            AlignedStack(alignment, spacing: EdgeInsets.contentOffset) {
                 Text(label)
                     .font(.headline)
                     .foregroundColor(.secondary)

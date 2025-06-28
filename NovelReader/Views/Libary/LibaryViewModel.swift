@@ -1,5 +1,5 @@
 //
-//  NovelListViewModel.swift
+//  LibaryViewModel.swift
 //  NovelReader
 //
 //  Created by Praveen Prabhakar on 6/26/25.
@@ -11,8 +11,7 @@ import Combine
 import SwiftData
 import SwiftUI
 
-class NovelListViewModel: ObservableObject {
-    @Published var novels: [NovelModel] = []
+class LibaryViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var error: Error?
     private var page: Int = 1
@@ -20,11 +19,6 @@ class NovelListViewModel: ObservableObject {
     private var canLoadNextPage = true
 
     private var cancellables = Set<AnyCancellable>()
-    private var fetchDescriptor: FetchDescriptor<NovelModel> {
-        FetchDescriptor<NovelModel>(
-            predicate: #Predicate { !$0.identifier.isEmpty }
-        )
-    }
 
     @MainActor
     func refreshNovels(modelContext: ModelContext) {
@@ -46,8 +40,9 @@ class NovelListViewModel: ObservableObject {
         guard cancellables.isEmpty, !isLoading && canLoadNextPage else { return }
         isLoading = true
         error = nil
-        NovelServices.syncNovelListPublisher(name: "local", page: page, modelContext: modelContext)
+        NovelServices.syncNovelListPublisher(name: "libary", page: page, modelContext: modelContext)
             .throttle(for: .seconds(2), scheduler: DispatchQueue.main, latest: false)
+            .delay(for: .milliseconds(Int.random(in: 0...200)), scheduler: DispatchQueue.main)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
                 guard let self else { return }
@@ -60,11 +55,7 @@ class NovelListViewModel: ObservableObject {
                 }
                 self.cancellables.removeAll()
             }, receiveValue: {
-                do {
-                    self.novels = try modelContext.fetch(self.fetchDescriptor)
-                } catch {
-                    self.error = error
-                }
+               // Do nothing
             })
             .store(in: &cancellables)
     }

@@ -36,7 +36,7 @@ public enum UserCacheType {
 
 public protocol UserCacheProtocol {
     // Will Setup userCache
-    static var sharedInstance: UserCacheManager { get }
+    static var shared: UserCacheManager { get }
 
     // Application level cache, reset when app relaunches
     var appCache: JSON { get }
@@ -70,7 +70,7 @@ public class UserCacheManager: UserCacheProtocol {
         case httpHeader = "sessnion.httpAdditionalHeaders"
     }
     // Will Setup userCache
-    public static let sharedInstance = { () -> UserCacheManager in
+    public static let shared = { () -> UserCacheManager in
         let session = UserCacheManager()
         session.setupUserSession()
         return session
@@ -108,7 +108,7 @@ public class UserCacheManager: UserCacheProtocol {
 public extension UserCacheProtocol {
     @discardableResult
     static func clearUserData() -> Bool {
-        UserCacheManager.sharedInstance.userCache = nil
+        UserCacheManager.shared.userCache = nil
         return true
     }
 
@@ -161,7 +161,7 @@ private extension UserCacheProtocol {
 
         // USER SESSION LEVEL
         if cacheType == .user {
-            UserCacheManager.sharedInstance.userCache?[key] = data
+            UserCacheManager.shared.userCache?[key] = data
             return true
         }
         // KeyChain LEVEL
@@ -177,7 +177,7 @@ private extension UserCacheProtocol {
         else {
 
             let key = String(describing: keyType)
-            UserCacheManager.sharedInstance.appCache[key] = data
+            UserCacheManager.shared.appCache[key] = data
         }
 
         return true
@@ -190,7 +190,7 @@ private extension UserCacheProtocol {
         let key: String = (keyType as? String) ?? String(describing: keyType)
 
         // USER SESSION LEVEL
-        if cacheType == .user, let data = UserCacheManager.sharedInstance.userCache?[key] {
+        if cacheType == .user, let data = UserCacheManager.shared.userCache?[key] {
             return data
         }
         // KeyChain LEVEL
@@ -201,13 +201,13 @@ private extension UserCacheProtocol {
         //        }
         // APPILCATION LEVEL
         else {
-            if let data = UserCacheManager.sharedInstance.appCache[key] {
+            if let data = UserCacheManager.shared.appCache[key] {
                 return data
             }
         }
 
         // USER SESSION LEVEL || Keychain data
-        if let data = UserCacheManager.sharedInstance.userCache?[key] {
+        if let data = UserCacheManager.shared.userCache?[key] {
             // ?? KeychainWrapper.standard.data(forKey: key, withAccessibility: keychainAccessiblity) {
             return data
         }

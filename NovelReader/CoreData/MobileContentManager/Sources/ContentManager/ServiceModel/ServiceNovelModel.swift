@@ -53,9 +53,28 @@ struct ServiceGenresModel: Codable {
     var name: String
 }
 
-extension NovelModel {
+/*
+
+extension SearchNovelModel {
     convenience init(service: ServiceNovelModel) {
         self.init(identifier: service.identifier, name: service.name)
+    }
+
+    func update(service: ServiceNovelModel, context: ModelContext) {
+        if let imageUrl = service.imageUrl.flatMap(URL.init(string:)) {
+            self.imageUrl = imageUrl
+        }
+        if let lastChapter = service.lastChapter {
+            self.lastChapter = lastChapter
+        }
+    }
+}
+
+*/
+
+extension NovelModel {
+    convenience init(service: ServiceNovelModel, name: String? = nil) {
+        self.init(identifier: service.identifier, name: service.name + " - \(name ?? "")")
     }
 
     func update(service: ServiceNovelModel, context: ModelContext) {
@@ -120,7 +139,7 @@ extension NovelModel {
     func updateChapterPagination(_ with: ServiceChapterPaginationModel, context: ModelContext) {
         let identifier = self.identifier
         let descriptor = FetchDescriptor<NovelChapterPaginationModel>(
-            predicate: #Predicate { $0.identifier == identifier && $0.novel.identifier == identifier }
+            predicate: #Predicate { $0.identifier == identifier && $0.novel?.identifier == identifier }
         )
         // Fetch exiting Chapter model
         let paginator = (try? context.fetch(descriptor).first) ?? NovelChapterPaginationModel(novel: self)
@@ -135,6 +154,10 @@ extension NovelModel {
 
 extension NovelChapterPaginationModel {
     func update(service: ServiceChapterPaginationModel, context: ModelContext) {
+        // Delete all existing chapters to avoid orphaned relationships
+//        for chapter in self.chapters {
+//            context.delete(chapter)
+//        }
         let newCh = service.chapters.map { chap in
             insertChapter(chap, context: context)
         }
@@ -144,7 +167,7 @@ extension NovelChapterPaginationModel {
     private func insertChapter(_ model: ServiceChapterModel, context: ModelContext) -> NovelChapterModel {
         let identifier = identifier
         let descriptor = FetchDescriptor<NovelChapterModel>(
-            predicate: #Predicate { $0.identifier == model.identifier && $0.novelPagination.identifier == identifier }
+            predicate: #Predicate { $0.identifier == model.identifier && $0.novelPagination?.identifier == identifier }
         )
 
         if let existing = try? context.fetch(descriptor).first {

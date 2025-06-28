@@ -27,30 +27,52 @@ public class WebService {
         url = url.appending(path: request.path)
         url = url.appending(queryItems: request.requestQuery)
 
+        let cacheKey = "\(url.absoluteString)_\(request.type.stringValue())"
+        if let cached: AnyPublisher<T, Error> = cachedPublisher(for: cacheKey) {
+            return cached
+        }
+
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = request.type.stringValue()
 
         if request.type == .POST {
-            if let body = request.requestBody as? Codable,
-               let data = request.jsonModelData(body) {
-                urlRequest.httpBody = data
+            urlRequest.httpBody = prepareHttpBody(for: request)
+            if urlRequest.httpBody != nil {
                 urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
             }
         }
 
-        return URLSession.shared.dataTaskPublisher(for: urlRequest)
+        return URLSessionManager.dataTaskPublisher(for: urlRequest)
             .subscribe(on: DispatchQueue.global(qos: .userInitiated))
-            .tryMap { result in
-                guard let response = result.response as? HTTPURLResponse else {
+            .tryMap { output in
+                guard let response = output.response as? HTTPURLResponse else {
                     throw NetworkError.badResponse
                 }
                 guard response.statusCode >= 200 && response.statusCode < 300 else {
                     throw NetworkError.badStatus
                 }
-                return result.data
+                return output.data
             }
             .decode(type: T.self, decoder: JSONDecoder())
-            .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
+    }
+
+    private func cachedPublisher<T: Codable>(for cacheKey: String) -> AnyPublisher<T, Error>? {
+        if let cachedData = UserCacheManager.getCachedObject(key: cacheKey, cacheType: .application) as? Data {
+            do {
+                let decoded = try JSONDecoder().decode(T.self, from: cachedData)
+                return Just(decoded)
+                    .setFailureType(to: Error.self)
+                    .eraseToAnyPublisher()
+            } catch {
+                return Fail(error: error).eraseToAnyPublisher()
+            }
+        }
+        return nil
+    }
+
+    private func prepareHttpBody(for request: any RequestObject) -> Data? {
+        guard let body = request.requestBody as? Codable else { return nil }
+        return request.jsonModelData(body)
     }
 }

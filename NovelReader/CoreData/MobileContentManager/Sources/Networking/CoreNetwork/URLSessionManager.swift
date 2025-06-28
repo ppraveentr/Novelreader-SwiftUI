@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Combine
 
 public typealias URLSessionCompletionBlock = (Data?, URLResponse?, Error?) -> Swift.Void
 
@@ -17,14 +18,20 @@ open class URLSessionManager: NSObject {
     public static var sessionQueue = OperationQueue()
     public static var urlSession: URLSession = URLSessionManager.createURLSession()
 
-    // Setup urlsession-dataTask with request & completionHandler
+    /// Returns a Combine publisher for the provided URLRequest
+    public class func dataTaskPublisher(for request: URLRequest) -> AnyPublisher<(data: Data, response: URLResponse), URLError> {
+        return urlSession.dataTaskPublisher(for: request)
+            .subscribe(on: DispatchQueue.global(qos: .userInitiated))
+            .map { ($0.data, $0.response) }
+            .eraseToAnyPublisher()
+    }
+
+    @available(*, deprecated, message: "Use Combine's dataTaskPublisher(for:) instead")
     @discardableResult open class
     func startDataTask(with request: URLRequest, completionHandler: URLSessionCompletionBlock? = nil) -> URLSessionDataTask {
 
         let task: URLSessionDataTask
 
-        // Setup session-dataTask with completion handler
-        Self.urlSession.dataTaskPublisher(for: request)
         if let completionHandler = completionHandler {
             task = Self.urlSession.dataTask(with: request, completionHandler: completionHandler)
         } else {

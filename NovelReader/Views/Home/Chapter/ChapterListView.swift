@@ -46,21 +46,7 @@ struct ChapterListView: View {
         .navigationTitle("Chapters (\(chapters.count))")
         .searchToolbarBehavior(.minimize)
         .scrollDismissesKeyboard(.interactively)
-        .toolbar {
-            ToolbarItemGroup(placement: .bottomBar) {
-                HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass").foregroundColor(.secondary)
-                    TextField("Search", text: $searchText)
-                }
-                .padding(.vertical, 4)
-                .cornerRadius(10)
-                .padding(.horizontal)
-                .fixedSize()
-            }
-            ToolbarItemGroup(placement: .bottomBar) {
-                Image(systemName: "magnifyingglass").foregroundColor(.secondary)
-            }
-        }
+        .searchable(text: $searchText, placement: .toolbarPrincipal, prompt: "Search chapters or number")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(action: {
@@ -68,7 +54,7 @@ struct ChapterListView: View {
                 }, label: {
                     Image(systemName: "arrow.up.arrow.down")
                         .rotationEffect(isInverted ? .degrees(180) : .degrees(0))
-                        .imageScale(.large)
+                        .imageScale(.medium)
                         .foregroundColor(.accentColor)
                         .accessibilityLabel("Sort order")
                 })

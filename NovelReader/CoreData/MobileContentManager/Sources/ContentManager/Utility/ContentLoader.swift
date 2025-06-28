@@ -21,7 +21,12 @@ enum ContentLoader {
     static func preloadDBData(_ sourceURL: URL, name: String) throws -> URL {
         //        let destURL = URL(fileURLWithPath: NSPersistentContainer.defaultDirectoryURL().relativePath + "/\(name)")
         let destURL = URL.documentsDirectory.appending(path: name)
-        let fileExits = FileManager.default.fileExists(atPath: destURL.relativePath)
+        let fileManager = FileManager.default
+        let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        if !fileManager.fileExists(atPath: appSupportURL.path) {
+            try? fileManager.createDirectory(at: appSupportURL, withIntermediateDirectories: true)
+        }
+        let fileExits = fileManager.fileExists(atPath: destURL.relativePath)
         let defaults = UserDefaults.standard
         let isPreloaded = defaults.bool(forKey: "isPreloaded") && fileExits
         guard !isPreloaded else {

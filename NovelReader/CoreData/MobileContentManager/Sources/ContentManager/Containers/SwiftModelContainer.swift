@@ -36,7 +36,7 @@ private extension SwiftModelContainer {
             return try ModelContainer(for: schema, configurations: [contentConfig, serviceConfig])
         } catch {
             debugPrint(error.localizedDescription)
-            throw NSError(domain: "Failed to configure SwiftData container.", code: 500)
+            throw NSError(domain: "Failed to configure Service SwiftData container.", code: 500)
         }
     }
 }

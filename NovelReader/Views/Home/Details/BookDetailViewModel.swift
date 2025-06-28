@@ -24,15 +24,21 @@ class BookDetailViewModel: ObservableObject {
         case chapterList(Error)
     }
 
+    @MainActor
+    func isFavorite(_ novel: NovelModel) -> Bool {
+        guard let server = AppManager.serverModelContainer else { return false }
+        let serverNovel = NovelModelCopyService.getNovel(identifier: novel.identifier, context: server)
+        return serverNovel != nil
+    }
+
     // Fetches novel details, then chapters, in sequence
     @MainActor
     func fetchNovelAndChapters(_ novel: NovelModel, modelContext: ModelContext) {
         guard !hasPageLoaded && !isLoading else { return }
-        isLoading = true
-        isChapterDetailsLoading = true
-        error = nil
-        chapterError = nil
+        (isLoading, isChapterDetailsLoading) = (true, true)
+        (error, chapterError) = (nil, nil)
         NovelServices.syncNovelDetailsPublisher(novel, modelContext: modelContext)
+            .subscribe(on: DispatchQueue.global(qos: .userInitiated))
             .mapError { FetchError.novelDetails($0) }
             .flatMap { _ in
                 NovelServices.syncChapterListPublisher(novel, modelContext: modelContext)
@@ -53,11 +59,38 @@ class BookDetailViewModel: ObservableObject {
                         self.chapterError = underlying
                     }
                 }
+                novel.isFavorite = isFavorite(novel)
                 self.isLoading = false
                 self.isChapterDetailsLoading = false
             } receiveValue: { _ in
                 // Do nothing
             }
             .store(in: &cancellables)
+    }
+
+    /// Cancels all ongoing Combine subscriptions/services.
+    func cancelServices() {
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
+    }
+
+    @MainActor
+    func favoriteBook(_ novel: NovelModel) {
+        Task {
+            guard let local = AppManager.localModelContainer, let server = AppManager.serverModelContainer else { return }
+            do {
+                if !novel.isFavorite {
+                    novel.isFavorite = true
+                    _ = try await NovelModelCopyService.copyNovelWithChapters(identifier: novel.identifier,
+                                                                               localContext: local,
+                                                                               serverContext: server)
+                } else {
+                    novel.isFavorite = false
+                    try await NovelModelCopyService.removeNovelWithChapters(identifier: novel.identifier, serverContext: server)
+                }
+            } catch {
+                debugPrint("Error on favoriting book: \(error)")
+            }
+        }
     }
 }
