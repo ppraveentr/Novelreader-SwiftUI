@@ -7,20 +7,25 @@
 //
 
 import SwiftUI
+import Combine
 
 @main
 struct NovelReaderApp: App {
     @State var appManager = AppManager.shared
+    @State private var isLoadingAppContent = true
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .onAppear {
-                    Task {
-                        await appManager.loadThemeModel()
-                    }
+            ZStack {
+                if isLoadingAppContent {
+                    SplashView()
+                        .transition(.move(edge: .bottom))
+                } else {
+                    ContentView()
                 }
-                .persistenceManager(appManager.dbManger)
+            }
+            .appStartup(isLoadingAppContent: $isLoadingAppContent)
+            .persistenceManager(appManager.dbManger)
         }
     }
 }

@@ -29,9 +29,7 @@ open class URLSessionManager: NSObject {
     @available(*, deprecated, message: "Use Combine's dataTaskPublisher(for:) instead")
     @discardableResult open class
     func startDataTask(with request: URLRequest, completionHandler: URLSessionCompletionBlock? = nil) -> URLSessionDataTask {
-
         let task: URLSessionDataTask
-
         if let completionHandler = completionHandler {
             task = Self.urlSession.dataTask(with: request, completionHandler: completionHandler)
         } else {
@@ -39,7 +37,6 @@ open class URLSessionManager: NSObject {
         }
         // start task
         task.resume()
-
         return task
     }
 }
@@ -50,7 +47,6 @@ extension URLSessionManager: URLSessionDelegate {
         let config = URLSessionManager.sessionConfiguration
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 30
-
         return URLSession(
             configuration: URLSessionManager.sessionConfiguration,
             delegate: URLSessionManager.sessionDelegate,

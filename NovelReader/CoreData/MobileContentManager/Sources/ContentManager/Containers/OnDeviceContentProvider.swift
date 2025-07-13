@@ -1,5 +1,5 @@
 //
-//  SwiftModelContainer.swift
+//  OnDeviceContentProvider.swift
 //  ContentManager
 //
 //  Created by Praveen Prabhakar on 9/2/24.
@@ -9,7 +9,7 @@
 import Foundation
 import SwiftData
 
-public class SwiftModelContainer {
+public class OnDeviceContentProvider {
     public let dbName: String
     public let storeURL: URL
     public let container: ModelContainer
@@ -23,7 +23,7 @@ public class SwiftModelContainer {
 
 // MARK: SwiftData ModelContainer
 
-private extension SwiftModelContainer {
+private extension OnDeviceContentProvider {
     static func modelContainer(storeURL: URL) throws -> ModelContainer {
         do {
             // CMS Content

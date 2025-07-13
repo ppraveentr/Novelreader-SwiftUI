@@ -40,7 +40,7 @@ class LibaryViewModel: ObservableObject {
         guard cancellables.isEmpty, !isLoading && canLoadNextPage else { return }
         isLoading = true
         error = nil
-        NovelServices.syncNovelListPublisher(name: "libary", page: page, modelContext: modelContext)
+        NovelServices.syncNovelListPublisher(page: page, modelContext: modelContext)
             .throttle(for: .seconds(2), scheduler: DispatchQueue.main, latest: false)
             .delay(for: .milliseconds(Int.random(in: 0...200)), scheduler: DispatchQueue.main)
             .receive(on: DispatchQueue.main)

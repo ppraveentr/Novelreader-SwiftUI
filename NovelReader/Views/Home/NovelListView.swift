@@ -20,48 +20,54 @@ struct NovelListView: View {
         }
     }
 
+    @State private var showingProfile = false
+    @StateObject private var viewModel = NovelListViewModel()
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     // Use the object for localContainer
     @EnvironmentObject private var localProvider: LocalContainerProvider
+    // Model Context
     private var modelContext: ModelContext {
         localProvider.container.mainContext
     }
 
-    @State private var showingProfile = false
-    @StateObject private var viewModel = NovelListViewModel()
-
     var body: some View {
-        NRScrollView(onBottomReached: {
-            viewModel.fetchNovels(modelContext: modelContext)
-        }, content: scrollContent)
-        .onAppear {
-            if viewModel.novels.isEmpty {
-                viewModel.fetchNovels(modelContext: modelContext)
+        GeometryReader { geo in
+            let width = geo.size.width
+            NRScrollView(
+                onBottomReached: {
+                    viewModel.fetchNovels(modelContext: modelContext)
+                },
+                content: {
+                    ResponsiveGrid(viewWidth: width, isLoading: viewModel.isLoading) {
+                        listView()
+                    }
+                }
+            )
+            .onAppear {
+                if viewModel.novels.isEmpty {
+                    viewModel.fetchNovels(modelContext: modelContext)
+                }
             }
-        }
-        .navigationTitle(DataConstants.titleText.content + " \(viewModel.novels.count)")
-        .toolbarModifier(.profileButton { showingProfile = true })
-        .sheet(isPresented: $showingProfile) {
-            ProfileView()
-        }
-        .refreshable {
-            viewModel.refreshNovels(modelContext: modelContext)
-        }
-        .bannerOverlay(.error(viewModel.error)) {
-            viewModel.error = nil
+            .searchable(text: $viewModel.searchQuery, placement: .navigationBarDrawer(displayMode: .always))
+            .navigationTitle(DataConstants.titleText.content + " \(viewModel.novels.count)")
+            .toolbarModifier(.profileButton { showingProfile = true })
+            .sheet(isPresented: $showingProfile) {
+                ProfileView()
+            }
+            .refreshable {
+                viewModel.refreshNovels(modelContext: modelContext)
+            }
+            .bannerOverlay(.error(viewModel.error)) {
+                viewModel.error = nil
+            }
         }
     }
 
-    @ViewBuilder
-    func scrollContent() -> some View {
+    private func listView() -> some View {
         ForEach(viewModel.novels, id: \.identifier) { novel in
             NavigationLink(destination: BookDetailView(novel: novel).modelContext(modelContext)) {
                 BookCellView(novel: novel).modelContext(modelContext)
             }
-        }
-        if viewModel.isLoading {
-            ProgressView()
-                .frame(maxWidth: .infinity)
-                .padding()
         }
     }
 }

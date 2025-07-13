@@ -28,8 +28,7 @@ class NovelChapterListService: BaseNovelRequest {
 extension NovelChapterListService {
     @MainActor
     func fetchChapterListPublisher(_ novel: NovelModel, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
-        let webService = WebService()
-        return webService.downloadDataPublisher(self)
+        WebService.downloadDataPublisher(self)
             .tryMap { (response: NovelChapterListResponse) in
                 let itemData = response.response
                 guard !itemData.identifier.isEmpty || !itemData.chapters.isEmpty || itemData.identifier == novel.identifier else {

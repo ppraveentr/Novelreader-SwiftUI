@@ -21,4 +21,3 @@ public class NovelChapterPaginationModel {
         self.novel = novel
     }
 }
-

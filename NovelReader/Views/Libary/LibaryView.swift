@@ -51,11 +51,7 @@ struct LibaryView: View {
                 BookCellView(novel: novel).modelContext(modelContext)
             }
         }
-        if viewModel.isLoading {
-            ProgressView()
-                .frame(maxWidth: .infinity)
-                .padding()
-        }
+        SpinnerView(isShowing: viewModel.isLoading)
         if let error = viewModel.error {
             Text("Failed to load novels: \(error.localizedDescription)")
                 .foregroundColor(.red)

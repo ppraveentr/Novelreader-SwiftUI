@@ -12,18 +12,28 @@ import SwiftData
 import SwiftUI
 
 class NovelListViewModel: ObservableObject {
-    @Published var novels: [NovelModel] = []
+    @Published private(set) var novels: [NovelModel] = []
     @Published var isLoading: Bool = false
     @Published var error: Error?
+    @Published var searchQuery: String = ""
+    private var allNovels: [NovelModel] = []
     private var page: Int = 1
     private var pageSize: Int = 38
     private var canLoadNextPage = true
 
     private var cancellables = Set<AnyCancellable>()
+    private var searchCancellables: AnyCancellable?
     private var fetchDescriptor: FetchDescriptor<NovelModel> {
         FetchDescriptor<NovelModel>(
             predicate: #Predicate { !$0.identifier.isEmpty }
         )
+    }
+
+    init() {
+        searchCancellables = $searchQuery
+            .debounce(for: .milliseconds(200), scheduler: DispatchQueue.main)
+            .sink { [weak self] _ in self?.filterNovels() }
+//            .store(in: &cancellables)
     }
 
     @MainActor
@@ -46,7 +56,7 @@ class NovelListViewModel: ObservableObject {
         guard cancellables.isEmpty, !isLoading && canLoadNextPage else { return }
         isLoading = true
         error = nil
-        NovelServices.syncNovelListPublisher(name: "local", page: page, modelContext: modelContext)
+        NovelServices.syncNovelListPublisher(page: page, modelContext: modelContext)
             .throttle(for: .seconds(2), scheduler: DispatchQueue.main, latest: false)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
@@ -56,17 +66,27 @@ class NovelListViewModel: ObservableObject {
                     self.error = err
                 } else {
                     self.page += 1
-                    self.canLoadNextPage = self.page < pageSize
+                    self.canLoadNextPage = self.page < self.pageSize
                 }
                 self.cancellables.removeAll()
             }, receiveValue: {
                 do {
-                    self.novels = try modelContext.fetch(self.fetchDescriptor)
+                    self.allNovels = try modelContext.fetch(self.fetchDescriptor)
+                    self.filterNovels()
                 } catch {
                     self.error = error
                 }
             })
             .store(in: &cancellables)
+    }
+
+    private func filterNovels() {
+        if searchQuery.isEmpty {
+            novels = allNovels
+        } else {
+            let lowercasedQuery = searchQuery.lowercased()
+            novels = allNovels.filter { $0.name.lowercased().contains(lowercasedQuery) == true }
+        }
     }
 
     /// Cancels all ongoing Combine subscriptions/services.

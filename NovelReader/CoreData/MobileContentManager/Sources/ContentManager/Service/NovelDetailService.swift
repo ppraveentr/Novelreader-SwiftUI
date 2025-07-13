@@ -28,8 +28,7 @@ class NovelDetailService: BaseNovelRequest {
 extension NovelDetailService {
     @MainActor
     func fetchNovelListPublisher(_ novel: NovelModel, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
-        let webService = WebService()
-        return webService.downloadDataPublisher(self)
+        WebService.downloadDataPublisher(self)
             .tryMap { (response: NovelDetailResponse) in
                 let itemData = response.response
                 guard !itemData.identifier.isEmpty || !itemData.name.isEmpty || itemData.identifier == novel.identifier else {

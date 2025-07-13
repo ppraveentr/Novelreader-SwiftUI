@@ -11,13 +11,15 @@ import SwiftUI
 struct BookCellView: View {
     var novel: NovelModel
 
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
     var body: some View {
         VStack {
-            HStack {
+            AlignedStack(.hAlignedStack(alignment: .center)) {
                 // Thumbnail image in the list row
                 NRImageView(imageUrl: novel.imageUrl)
                 // Novel information: title and author are shown in the list row
-                VStack(alignment: .leading, spacing: EdgeInsets.contentPadding) {
+                AlignedStack(.vStack) {
                     Text(novel.name)
                         .font(.headline)
                         .foregroundColor(.primary)
@@ -26,14 +28,17 @@ struct BookCellView: View {
                     if let author = novel.author {
                         AuthorView(author: author)
                     }
+                    // iPad
+                    if horizontalSizeClass == .regular {
+                        lastChapterView()
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                Spacer()
-                // Optional: Show last chapter info in a smaller font
-                if let lastChapter = novel.lastChapter {
-                    Text(lastChapter)
-                        .font(.caption)
-                        .foregroundColor(.blue)
+                // iPhone
+                if horizontalSizeClass != .regular {
+                    Spacer()
+                    // Last chapter View
+                    lastChapterView()
                 }
             }
             .frame(maxWidth: .infinity)
@@ -42,6 +47,17 @@ struct BookCellView: View {
             // Divider to separate rows
             Divider()
                 .padding(.edgePadding)
+        }
+    }
+
+    func lastChapterView() -> some View {
+        Group {
+            // Show last chapter info in a smaller font
+            if let lastChapter = novel.lastChapter {
+                Text(lastChapter)
+                    .font(.caption)
+                    .foregroundColor(.blue)
+            }
         }
     }
 }

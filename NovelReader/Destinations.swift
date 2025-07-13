@@ -19,17 +19,38 @@ enum Destinations: String, CaseIterable, Identifiable, Hashable {
             ForEach(Destinations.allCases, id: \.self) { $0.tabView }
         }
         .tabBarMinimizeBehavior(.onScrollDown)
+        .tabViewStyle(.sidebarAdaptable)
     }
 
     // For all others
     static func sideBarView(_ selection: Binding<Destinations>) -> some View {
-        let _selection: Binding<Destinations?> = Binding(selection)
-        return NavigationStack {
-            List {
-                ForEach(Destinations.allCases, id: \.self) { $0.navigationLink(_selection) }
+        NavigationSplitView(sidebar: {
+            // Using this workaround because Selection binding on List in sidebar behaves inconsistently on iOS.
+            // So we manually handle tap gesture and highlight the selected item.
+            List(Destinations.allCases, id: \.self) { destination in
+                destination.tabBarLabel
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        selection.wrappedValue = destination
+                    }
+                    .background(
+                        selection.wrappedValue == destination ? Color.accentColor.opacity(0.15) : Color.clear
+                    )
             }
-        }
+        }, detail: {
+            selection.wrappedValue.contentView
+        })
     }
+
+//    // For all others
+//    static func sideBarView(_ selection: Binding<Destinations>) -> some View {
+//        let _selection: Binding<Destinations?> = Binding(selection)
+//        return NavigationStack {
+//            List {
+//                ForEach(Destinations.allCases, id: \.self) { $0.navigationLink(_selection) }
+//            }
+//        }
+//    }
 }
 
 private extension Destinations {
@@ -80,3 +101,4 @@ private extension Destinations {
         }
     }
 }
+

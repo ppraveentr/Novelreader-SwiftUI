@@ -9,6 +9,8 @@ import ContentManager
 import Foundation
 import Theme
 import SwiftData
+import Combine
+import SwiftUI
 
 final class AppManager {
     private enum Environment: String {
@@ -20,8 +22,11 @@ final class AppManager {
         static let themeJson = "Theme.json"
     }
 
-    static let shared = AppManager()
     private var endPoint: Environment
+    private var cancellables = Set<AnyCancellable>()
+    let genreFetchError = PassthroughSubject<Error, Never>()
+
+    static let shared = AppManager()
     let dbManger = ContentStore.contentManager
 
     private init() {
@@ -42,5 +47,35 @@ final class AppManager {
     @MainActor
     static var serverModelContainer: ModelContext? {
         Self.shared.dbManger.contentManager?.container.mainContext
+    }
+}
+
+// MARK: Service
+
+extension AppManager {
+    @MainActor
+    func updateGenre(_ isLoadingOrHasError: Binding<Bool>? = nil) {
+        isLoadingOrHasError?.wrappedValue = true
+        guard let onDeviceModelContainer = Self.serverModelContainer else {
+            let error = NSError(domain: "AppManager",
+                                code: 1,
+                                userInfo: [NSLocalizedDescriptionKey: "Model container not available"])
+            genreFetchError.send(error)
+            return
+        }
+        NovelServices.syncGenericPublisher(modelContext: onDeviceModelContainer)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                if case let .failure(error) = completion {
+                    self?.genreFetchError.send(error)
+                    isLoadingOrHasError?.wrappedValue = true
+                } else {
+                    isLoadingOrHasError?.wrappedValue = false
+                }
+                self?.cancellables.removeAll()
+            }, receiveValue: {
+                // Do nothing
+            })
+            .store(in: &cancellables)
     }
 }

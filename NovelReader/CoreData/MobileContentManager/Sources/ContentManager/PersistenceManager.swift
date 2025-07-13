@@ -12,12 +12,12 @@ import SwiftUI
 @Observable
 public class PersistenceManager {
     let dbName: String
-    public var contentManager: SwiftModelContainer?
+    public var contentManager: OnDeviceContentProvider?
     public var localContentManager: LocalContainerProvider?
 
     public init(dbName: String) {
         self.dbName = dbName
-        self.contentManager = try? SwiftModelContainer(dbName: dbName)
+        self.contentManager = try? OnDeviceContentProvider(dbName: dbName)
         self.localContentManager = try? LocalContainerProvider()
     }
 }

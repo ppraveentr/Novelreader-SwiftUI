@@ -26,20 +26,6 @@ enum ModelSchemas {
         ModelConfiguration("cms", schema: contentSchmeas, url: storeURL, cloudKitDatabase: .none)
     }
 
-    // MARK: Local Model
-
-//    static let localSchemas: [any PersistentModel.Type] = [
-//        SearchNovelModel.self
-//    ]
-//
-//    static var localModelSchmeas: Schema {
-//        Schema(Self.localSchemas)
-//    }
-//
-//    static func localConfiguration() -> ModelConfiguration {
-//        ModelConfiguration(schema: localModelSchmeas, isStoredInMemoryOnly: false, cloudKitDatabase: .none)
-//    }
-
     // MARK: Service Model
 
     static let serviceSchemas: [any PersistentModel.Type] = [

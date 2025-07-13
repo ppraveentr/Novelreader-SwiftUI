@@ -10,21 +10,20 @@ import SwiftUI
 import Theme
 
 struct ContentView: View {
-
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var selection: Destinations = .home
 
     var body: some View {
         ZStack {
-            #if os(iOS)
-            if horizontalSizeClass == .compact {
+//            #if os(iOS)
+//            if horizontalSizeClass == .compact {
                 Destinations.tabBarView($selection)
-            } else {
-                Destinations.sideBarView($selection)
-            }
-            #else
-            Destinations.sideBarView($selection)
-            #endif
+//            } else {
+//                Destinations.sideBarView($selection)
+//            }
+//            #else
+//            Destinations.sideBarView($selection)
+//            #endif
         }
     }
 }

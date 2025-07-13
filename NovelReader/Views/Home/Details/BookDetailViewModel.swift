@@ -80,12 +80,11 @@ class BookDetailViewModel: ObservableObject {
             guard let local = AppManager.localModelContainer, let server = AppManager.serverModelContainer else { return }
             do {
                 if !novel.isFavorite {
-                    novel.isFavorite = true
-                    _ = try await NovelModelCopyService.copyNovelWithChapters(identifier: novel.identifier,
+                    let savedNovel = try await NovelModelCopyService.copyNovelWithChapters(identifier: novel.identifier,
                                                                                localContext: local,
                                                                                serverContext: server)
+                    savedNovel?.isFavorite = true
                 } else {
-                    novel.isFavorite = false
                     try await NovelModelCopyService.removeNovelWithChapters(identifier: novel.identifier, serverContext: server)
                 }
             } catch {

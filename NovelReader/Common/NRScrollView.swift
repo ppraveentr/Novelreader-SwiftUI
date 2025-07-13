@@ -14,6 +14,11 @@ struct NRScrollView<Content>: View where Content: View {
     @State private var isAtBottom = false
     @State private var debounceWorkItem: DispatchWorkItem?
 
+    /// NRScrollView is a flexible scroll container for SwiftUI.
+    ///
+    /// You can provide any layout as the content, such as a ForEach in a VStack/LazyVStack for lists, or a LazyVGrid for grids/collections.
+    /// This allows the caller to adapt the layout for iPhone (list) or iPad (grid) based on device or trait environment.
+    /// The `axes` parameter controls the scrolling direction, and `content` is a `@ViewBuilder` closure.
     init(_ axes: Axis.Set = .vertical, onBottomReached: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) {
         self.axes = axes
         self.onBottomReached = onBottomReached

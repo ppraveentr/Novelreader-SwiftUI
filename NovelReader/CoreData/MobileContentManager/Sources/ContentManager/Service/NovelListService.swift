@@ -27,9 +27,8 @@ class NovelListService: BaseNovelRequest {
 
 extension NovelListService {
     @MainActor
-    func fetchNovelListPublisher(name: String? = nil, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
-        let webService = WebService()
-        return webService.downloadDataPublisher(self)
+    func fetchNovelListPublisher(modelContext: ModelContext) -> AnyPublisher<Void, Error> {
+        WebService.downloadDataPublisher(self)
             .tryMap { (response: NovelListResponse) in
                 let itemData = response.response.filter { !$0.identifier.isEmpty && !$0.name.isEmpty }
                 guard !itemData.isEmpty else {
@@ -41,7 +40,7 @@ extension NovelListService {
             .receive(on: DispatchQueue.main)
             .handleEvents(receiveOutput: { itemData in
                 itemData.forEach {
-                    let model = NovelModel(service: $0, name: name)
+                    let model = NovelModel(service: $0)
                     model.update(service: $0, context: modelContext)
                     modelContext.insert(model)
                 }

@@ -24,11 +24,6 @@ public enum ReqeustType: String, Codable {
     }
 }
 
-public enum NetworkError: Error {
-    case badUrl, badResponse, badStatus
-    case invalidRequest, failedToDecodeResponse
-}
-
 public protocol ServiceModel: Codable {}
 
 public protocol RequestObject {
@@ -48,17 +43,17 @@ public protocol RequestObject {
     func jsonString(_ data: Codable) -> String?
 }
 
-extension RequestObject {
-    public func jsonModelData(_ data: Codable) -> Data? {
+public extension RequestObject {
+    func jsonModelData(_ data: Codable) -> Data? {
         try? JSONEncoder().encode(data)
     }
 
-    public func jsonModel(_ data: Codable) throws -> JSON? {
+    func jsonModel(_ data: Codable) throws -> JSON? {
         let data: Data = try JSONEncoder().encode(data)
         return try? data.jsonContent() as? JSON
     }
 
-    public func jsonString(_ data: Codable) -> String? {
+    func jsonString(_ data: Codable) -> String? {
         if let data = data as? Codable, var jsn = try? self.jsonModel(data) {
             jsn.stripNilElements()
             if JSONSerialization.isValidJSONObject(jsn),
@@ -70,7 +65,7 @@ extension RequestObject {
     }
 
     // Encode complex key/value objects in NSRULQueryItem pairs
-    public func queryItems(_ key: String, _ value: Any?) -> [URLQueryItem] {
+    func queryItems(_ key: String, _ value: Any?) -> [URLQueryItem] {
         var result = [] as [URLQueryItem]
 
         if let dictionary = value as? [String: AnyObject] {
@@ -92,7 +87,7 @@ extension RequestObject {
     }
 
     // FORM
-    public func formData() -> Data? {
+    func formData() -> Data? {
         guard let obj = self.requestBody as? Codable,
               let json = try? jsonModel(obj) else { return nil }
         var postData: Data?
