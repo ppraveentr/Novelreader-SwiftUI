@@ -19,6 +19,7 @@ struct NRScrollView<Content>: View where Content: View {
     /// You can provide any layout as the content, such as a ForEach in a VStack/LazyVStack for lists, or a LazyVGrid for grids/collections.
     /// This allows the caller to adapt the layout for iPhone (list) or iPad (grid) based on device or trait environment.
     /// The `axes` parameter controls the scrolling direction, and `content` is a `@ViewBuilder` closure.
+    /// The bottom marker uses the container height to detect when the bottom is reached.
     init(_ axes: Axis.Set = .vertical, onBottomReached: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) {
         self.axes = axes
         self.onBottomReached = onBottomReached
@@ -52,14 +53,14 @@ struct NRScrollView<Content>: View where Content: View {
                 .onAppear { isAtBottom = true }
                 .onDisappear { isAtBottom = false }
                 .onChange(of: geo.frame(in: .global).maxY) { _, newY in
-                    update(newY)
+                    update(newY, containerHeight: geo.frame(in: .global).height)
                 }
         }
         .frame(height: 1)
     }
 
-    func update(_ newY: CGFloat) {
-        let screenHeight = UIScreen.main.bounds.height
+    func update(_ newY: CGFloat, containerHeight: CGFloat) {
+        let screenHeight = containerHeight
         let atBottom = newY < screenHeight - 100
         if atBottom && !isAtBottom {
             debounceWorkItem?.cancel()

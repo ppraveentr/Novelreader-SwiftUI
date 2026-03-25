@@ -14,32 +14,71 @@ struct BookDetailCard: View {
     let status: String
 
     var body: some View {
-        AlignedStack {
-            DetailItem(icon: "person.fill", label: "Author", value: author)
-            Spacer()
-            if let genre = genre {
-                DetailItem(icon: "books.vertical.fill", label: "Genre", value: genre.compactMap { $0 }.joined(separator: ", "))
-                Spacer()
+        GeometryReader { geometry in
+            let isHorizontal = geometry.size.width > 500
+            AlignedStack(isHorizontal ? .hStack : .vStack, spacing: isHorizontal ? 16 : 12) {
+                DetailItem(itemType: .author, value: author)
+                if let genre = genre {
+                    DetailItem(itemType: .genre, value: genre.compactMap { $0 }.joined(separator: ", "))
+                }
+                DetailItem(itemType: .source, value: source)
             }
-            DetailItem(icon: "globe", label: "Source", value: source)
+            .padding()
         }
     }
 }
 
 struct DetailItem: View {
-    let icon, label, value: String
+    enum ViewType {
+        case author, genre, source, status(State)
+
+        enum State {
+            case ongoing, completed
+        }
+
+        var icon: String {
+            switch self {
+            case .author:
+                return "person.fill"
+            case .genre:
+                return "books.vertical.fill"
+            case .source:
+                return "globe"
+            case let .status(state):
+                return state == .ongoing ? "hourglass" : "checkmark.seal.fill"
+            }
+        }
+
+        var label: String {
+            switch self {
+            case .author:
+                return "Author"
+            case .genre:
+                return "Genre"
+            case .source:
+                return "Source"
+            case .status:
+                return "Status"
+            }
+        }
+    }
+
+    var itemType: ViewType
+    let value: String
     var alignment: StackAlignment = .vStack
 
     var body: some View {
         AlignedStack(.hStack) {
-            Image(systemName: icon)
+            Image(systemName: itemType.icon)
                 .foregroundColor(.accentColor)
             AlignedStack(alignment, spacing: EdgeInsets.contentOffset) {
-                Text(label)
+                Text(itemType.label)
                     .font(.headline)
                     .foregroundColor(.secondary)
                 Text(value)
                     .fontWeight(.medium)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }

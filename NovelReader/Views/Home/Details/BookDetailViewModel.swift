@@ -12,6 +12,13 @@ import SwiftData
 import SwiftUI
 
 class BookDetailViewModel: ObservableObject {
+    /// ViewModel for handling book details and chapters.
+    ///
+    /// Provides functionality to fetch novel details and chapters,
+    /// as well as to favorite or unfavorite a novel.
+    ///
+    /// The `favoriteBook` function now accepts an optional closure `onDelete`,
+    /// which is called after a novel is successfully removed from favorites.
     @Published var isLoading: Bool = false
     @Published var isChapterDetailsLoading: Bool = false
     @Published var error: Error?
@@ -59,9 +66,11 @@ class BookDetailViewModel: ObservableObject {
                         self.chapterError = underlying
                     }
                 }
-                novel.isFavorite = isFavorite(novel)
-                self.isLoading = false
-                self.isChapterDetailsLoading = false
+                Task { @MainActor in
+                    novel.isFavorite = self.isFavorite(novel)
+                    self.isLoading = false
+                    self.isChapterDetailsLoading = false
+                }
             } receiveValue: { _ in
                 // Do nothing
             }
@@ -75,7 +84,7 @@ class BookDetailViewModel: ObservableObject {
     }
 
     @MainActor
-    func favoriteBook(_ novel: NovelModel) {
+    func favoriteBook(_ novel: NovelModel, onDelete: (() -> Void)? = nil) {
         Task {
             guard let local = AppManager.localModelContainer, let server = AppManager.serverModelContainer else { return }
             do {
@@ -86,6 +95,7 @@ class BookDetailViewModel: ObservableObject {
                     savedNovel?.isFavorite = true
                 } else {
                     try await NovelModelCopyService.removeNovelWithChapters(identifier: novel.identifier, serverContext: server)
+                    onDelete?()
                 }
             } catch {
                 debugPrint("Error on favoriting book: \(error)")

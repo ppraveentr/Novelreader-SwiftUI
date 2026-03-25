@@ -32,41 +32,96 @@ struct NovelListView: View {
 
     var body: some View {
         GeometryReader { geo in
-            let width = geo.size.width
-            NRScrollView(
-                onBottomReached: {
-                    viewModel.fetchNovels(modelContext: modelContext)
-                },
-                content: {
-                    ResponsiveGrid(viewWidth: width, isLoading: viewModel.isLoading) {
-                        listView()
+            mainBody(for: geo)
+                .onAppear {
+                    if viewModel.novels.isEmpty {
+                        viewModel.fetchNovels(modelContext: modelContext)
                     }
                 }
-            )
-            .onAppear {
-                if viewModel.novels.isEmpty {
-                    viewModel.fetchNovels(modelContext: modelContext)
+                .navigationTitle(DataConstants.titleText.content + " \(viewModel.novels.count)")
+                .toolbarModifier(.profileButton { showingProfile = true })
+                .sheet(isPresented: $showingProfile) {
+                    ProfileView()
+                }
+                .refreshable {
+                    viewModel.refreshNovels(modelContext: modelContext)
+                }
+                .bannerOverlay(.error(viewModel.error)) {
+                    viewModel.error = nil
+                }
+        }
+    }
+}
+
+private extension NovelListView {
+    var isPhone: Bool {
+        horizontalSizeClass == .compact
+    }
+
+    func novelGridView(_ width: CGFloat) -> some View {
+        NRScrollView(
+            onBottomReached: {
+                viewModel.fetchNovels(modelContext: modelContext)
+            },
+            content: {
+                ResponsiveGrid(viewWidth: width, shrinkedView: viewModel.selectedNovel != nil, isLoading: viewModel.isLoading) {
+                    listView()
                 }
             }
-            .searchable(text: $viewModel.searchQuery, placement: .navigationBarDrawer(displayMode: .always))
-            .navigationTitle(DataConstants.titleText.content + " \(viewModel.novels.count)")
-            .toolbarModifier(.profileButton { showingProfile = true })
-            .sheet(isPresented: $showingProfile) {
-                ProfileView()
+        )
+        // Apply searchable only here to scope search to the novel list view and avoid conflicts with detail view
+        .searchable(text: $viewModel.searchQuery)
+    }
+
+    func formatedWidth(_ geo: GeometryProxy) -> CGFloat {
+        let wid = geo.size.width
+        if isPhone || viewModel.selectedNovel == nil {
+            return wid
+        }
+        return geo.size.width * 0.4
+    }
+
+    func mainBody(for geo: GeometryProxy) -> some View {
+        HStack(spacing: 0) {
+            // Left side: novel grid/list view with search capability, in its own NavigationStack so search bar is scoped ONLY to the grid
+            NavigationStack {
+                novelGridView(geo.size.width)
             }
-            .refreshable {
-                viewModel.refreshNovels(modelContext: modelContext)
-            }
-            .bannerOverlay(.error(viewModel.error)) {
-                viewModel.error = nil
+            .frame(width: formatedWidth(geo))
+            // Right side: detail view, no search here to avoid conflicting focus
+            if !isPhone, let novel = viewModel.selectedNovel {
+                Divider()
+                BookDetailView(novel: novel) {
+                    // Prevent crash if novel is deleted
+                    viewModel.selectedNovel = nil
+                }
+                    .id(novel.identifier)
+                    .modelContext(modelContext)
+                    .frame(width: geo.size.width * 0.6)
+                    .transition(.move(edge: .trailing))
             }
         }
     }
 
-    private func listView() -> some View {
+    func listView() -> some View {
         ForEach(viewModel.novels, id: \.identifier) { novel in
-            NavigationLink(destination: BookDetailView(novel: novel).modelContext(modelContext)) {
-                BookCellView(novel: novel).modelContext(modelContext)
+            let des = { novel in
+                BookDetailView(novel: novel) {
+                    // Prevent crash if novel is deleted
+                    viewModel.selectedNovel = nil
+                }
+                .modelContext(modelContext)
+            }
+            if isPhone {
+                NavigationLink(destination: des(novel)) {
+                    BookCellView(novel: novel).modelContext(modelContext)
+                }
+            } else {
+                BookCellView(novel: novel)
+                    .modelContext(modelContext)
+                    .onTapGesture {
+                        viewModel.selectedNovel = novel
+                    }
             }
         }
     }

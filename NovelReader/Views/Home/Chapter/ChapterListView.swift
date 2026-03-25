@@ -61,6 +61,7 @@ struct ChapterListView: View {
                 .help("Invert chapter sort order")
             }
         }
+        .toolbar(.hidden, for: .tabBar)
     }
 }
 

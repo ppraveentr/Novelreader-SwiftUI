@@ -13,6 +13,7 @@ import Combine
 struct NovelReaderApp: App {
     @State var appManager = AppManager.shared
     @State private var isLoadingAppContent = true
+    @State private var selection: Destinations = .home
 
     var body: some Scene {
         WindowGroup {
@@ -21,7 +22,7 @@ struct NovelReaderApp: App {
                     SplashView()
                         .transition(.move(edge: .bottom))
                 } else {
-                    ContentView()
+                    Destinations.tabBarView($selection)
                 }
             }
             .appStartup(isLoadingAppContent: $isLoadingAppContent)

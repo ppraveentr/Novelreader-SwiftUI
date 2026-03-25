@@ -26,7 +26,6 @@ class NovelChapterListService: BaseNovelRequest {
 }
 
 extension NovelChapterListService {
-    @MainActor
     func fetchChapterListPublisher(_ novel: NovelModel, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         WebService.downloadDataPublisher(self)
             .tryMap { (response: NovelChapterListResponse) in
@@ -37,7 +36,6 @@ extension NovelChapterListService {
                 }
                 return itemData
             }
-            .receive(on: DispatchQueue.main)
             .handleEvents(receiveOutput: { itemData in
                 novel.updateChapterPagination(itemData, context: modelContext)
             })

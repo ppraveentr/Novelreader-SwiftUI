@@ -26,7 +26,6 @@ class GenreService: BaseNovelRequest {
 }
 
 extension GenreService {
-    @MainActor
     func updateGenreListPublisher(_ modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         WebService.downloadDataPublisher(self)
             .tryMap { (response: GenreResponse) in
@@ -39,13 +38,14 @@ extension GenreService {
             }
             .receive(on: DispatchQueue.main)
             .handleEvents(receiveOutput: { itemData in
-                // Remove all existing GenresModel objects before inserting new ones
-                Self.clearAllGenres(modelContext: modelContext)
-                itemData.forEach {
-                    let model = GenresModel(service: $0)
-                    modelContext.insert(model)
+                Task { @MainActor in
+                    Self.clearAllGenres(modelContext: modelContext)
+                    itemData.forEach {
+                        let model = GenresModel(service: $0)
+                        modelContext.insert(model)
+                    }
+                    try? modelContext.save()
                 }
-                try? modelContext.save()
             })
             .map { _ in () }
             .eraseToAnyPublisher()

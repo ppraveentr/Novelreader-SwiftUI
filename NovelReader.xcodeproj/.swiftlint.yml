@@ -1,0 +1,18 @@
+# This is a basic SwiftLint configuration. You can adjust rules as needed.
+disabled_rules:
+  - trailing_whitespace
+  - line_length
+
+opt_in_rules:
+  - empty_count
+
+included:
+  - Sources
+  - Tests
+
+excluded:
+  - Carthage
+  - Pods
+
+# You can customize rules or add more as needed.
+

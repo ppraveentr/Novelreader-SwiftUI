@@ -40,7 +40,6 @@
 		D4FF396D2E0F24C5007C4033 /* LibaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FF396A2E0F24C5007C4033 /* LibaryView.swift */; };
 		DE16293B290492E600DD3E36 /* Theme.json in Resources */ = {isa = PBXBuildFile; fileRef = DE16293A290492E600DD3E36 /* Theme.json */; };
 		DE73DEE128DF99BB00EEDCFA /* NovelReaderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE73DEE028DF99BB00EEDCFA /* NovelReaderApp.swift */; };
-		DE73DEE328DF99BB00EEDCFA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE73DEE228DF99BB00EEDCFA /* ContentView.swift */; };
 		DE73DEE528DF99BD00EEDCFA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DE73DEE428DF99BD00EEDCFA /* Assets.xcassets */; };
 		DE73DEE828DF99BD00EEDCFA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DE73DEE728DF99BD00EEDCFA /* Preview Assets.xcassets */; };
 		DE73DEEA28DF99BD00EEDCFA /* ContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE73DEE928DF99BD00EEDCFA /* ContentStore.swift */; };
@@ -101,7 +100,6 @@
 		DE16293A290492E600DD3E36 /* Theme.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Theme.json; sourceTree = "<group>"; };
 		DE73DEDD28DF99BB00EEDCFA /* NovelReader.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NovelReader.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DE73DEE028DF99BB00EEDCFA /* NovelReaderApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NovelReaderApp.swift; sourceTree = "<group>"; };
-		DE73DEE228DF99BB00EEDCFA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		DE73DEE428DF99BD00EEDCFA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DE73DEE728DF99BD00EEDCFA /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		DE73DEE928DF99BD00EEDCFA /* ContentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentStore.swift; sourceTree = "<group>"; };
@@ -293,7 +291,6 @@
 			children = (
 				D469853B2D614BD400E1CB92 /* AppManager.swift */,
 				DE73DEE028DF99BB00EEDCFA /* NovelReaderApp.swift */,
-				DE73DEE228DF99BB00EEDCFA /* ContentView.swift */,
 				DEB64124290F1DB200DC0A49 /* Destinations.swift */,
 				D47DAA6D2E11CC5000BC590B /* ViewModifers */,
 				D46985432D626A4100E1CB92 /* Extensions */,
@@ -547,7 +544,6 @@
 				D4CB449A2E0A441000BD2C17 /* SpinnerView.swift in Sources */,
 				D46735BE2E0E3FC2007A171D /* StackAlignment.swift in Sources */,
 				D46DBC212E0DE32600E94759 /* BookDetailViewModel.swift in Sources */,
-				DE73DEE328DF99BB00EEDCFA /* ContentView.swift in Sources */,
 				DEB64125290F1DB200DC0A49 /* Destinations.swift in Sources */,
 				DE7A45732909D934003AB2AD /* NovelListView.swift in Sources */,
 				D46985402D62662E00E1CB92 /* NRScrollView.swift in Sources */,
@@ -750,7 +746,6 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UIRequiresFullScreen = NO;
 				INFOPLIST_KEY_UIStatusBarHidden = NO;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -800,7 +795,6 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UIRequiresFullScreen = NO;
 				INFOPLIST_KEY_UIStatusBarHidden = NO;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;

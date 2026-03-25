@@ -26,7 +26,6 @@ class NovelDetailService: BaseNovelRequest {
 }
 
 extension NovelDetailService {
-    @MainActor
     func fetchNovelListPublisher(_ novel: NovelModel, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         WebService.downloadDataPublisher(self)
             .tryMap { (response: NovelDetailResponse) in
@@ -37,7 +36,7 @@ extension NovelDetailService {
                 }
                 return itemData
             }
-            .receive(on: DispatchQueue.main)
+//            .receive(on: DispatchQueue.main)
             .handleEvents(receiveOutput: { itemData in
                 novel.update(service: itemData, context: modelContext)
                 try? modelContext.save()

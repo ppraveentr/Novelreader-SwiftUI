@@ -19,7 +19,7 @@ enum Destinations: String, CaseIterable, Identifiable, Hashable {
             ForEach(Destinations.allCases, id: \.self) { $0.tabView }
         }
         .tabBarMinimizeBehavior(.onScrollDown)
-        .tabViewStyle(.sidebarAdaptable)
+//        .tabViewStyle(.sidebarAdaptable)
     }
 
     // For all others
@@ -41,16 +41,6 @@ enum Destinations: String, CaseIterable, Identifiable, Hashable {
             selection.wrappedValue.contentView
         })
     }
-
-//    // For all others
-//    static func sideBarView(_ selection: Binding<Destinations>) -> some View {
-//        let _selection: Binding<Destinations?> = Binding(selection)
-//        return NavigationStack {
-//            List {
-//                ForEach(Destinations.allCases, id: \.self) { $0.navigationLink(_selection) }
-//            }
-//        }
-//    }
 }
 
 private extension Destinations {
@@ -101,4 +91,3 @@ private extension Destinations {
         }
     }
 }
-

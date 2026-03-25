@@ -19,14 +19,12 @@ extension BaseNovelRequest {
 public enum NovelServices {
     public static var appBaseURL = ""
 
-    @MainActor
     public static func syncNovelListPublisher(page: Int, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         let listService = NovelListService()
         listService.requestQuery = [URLQueryItem(name: "page", value: String(page))]
         return listService.fetchNovelListPublisher(modelContext: modelContext)
     }
 
-    @MainActor
     public static func syncNovelDetailsPublisher(_ novel: NovelModel, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         let detailService = NovelDetailService()
         let idQuery = URLQueryItem(name: "id", value: novel.identifier)
@@ -34,7 +32,6 @@ public enum NovelServices {
         return detailService.fetchNovelListPublisher(novel, modelContext: modelContext)
     }
 
-    @MainActor
     public static func syncChapterListPublisher(_ novel: NovelModel, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         let chapterListService = NovelChapterListService()
         let idQuery = URLQueryItem(name: "id", value: novel.identifier)
@@ -43,7 +40,6 @@ public enum NovelServices {
         return chapterListService.fetchChapterListPublisher(novel, modelContext: modelContext)
     }
 
-    @MainActor
     public static func syncGenericPublisher(modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         let genreListService = GenreService()
         return genreListService.updateGenreListPublisher(modelContext)

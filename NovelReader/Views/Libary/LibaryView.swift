@@ -47,7 +47,14 @@ struct LibaryView: View {
     @ViewBuilder
     func scrollContent() -> some View {
         ForEach(novels, id: \.identifier) { novel in
-            NavigationLink(destination: BookDetailView(novel: novel).modelContext(modelContext)) {
+            let des = { novel in
+                BookDetailView(novel: novel) {
+                    // Prevent crash if novel is deleted
+//                    viewModel.selectedNovel = nil
+                }
+                .modelContext(modelContext)
+            }
+            NavigationLink(destination: des(novel)) {
                 BookCellView(novel: novel).modelContext(modelContext)
             }
         }

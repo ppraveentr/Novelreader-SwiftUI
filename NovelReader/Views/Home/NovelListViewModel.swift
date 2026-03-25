@@ -16,6 +16,7 @@ class NovelListViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var error: Error?
     @Published var searchQuery: String = ""
+    @Published var selectedNovel: NovelModel?
     private var allNovels: [NovelModel] = []
     private var page: Int = 1
     private var pageSize: Int = 38

@@ -14,11 +14,12 @@ enum BookDetailRoute: Hashable {
 }
 
 struct BookDetailView: View {
-    let novel: NovelModel
     @Environment(\.modelContext) var modelContext
+    @StateObject private var viewModel: BookDetailViewModel = BookDetailViewModel()
     @State private var selectedTab = 0
-    @StateObject private var viewModel = BookDetailViewModel()
     @State private var saved: Bool = false
+    let novel: NovelModel
+    let onDelete: (() -> Void)
 
     var body: some View {
         NRScrollView {
@@ -39,10 +40,10 @@ struct BookDetailView: View {
         }
         .toolbarModifier(.saveNoveButton(novel.isFavorite) {
             Task {
-                viewModel.favoriteBook(novel)
+                // Pass onDelete closure to favoriteBook to handle deletion side effects if needed
+                viewModel.favoriteBook(novel, onDelete: onDelete)
             }
         })
-        .toolbar(.hidden, for: .tabBar)
     }
 }
 
@@ -137,8 +138,7 @@ fileprivate extension BookDetailView {
     @ViewBuilder
     func statusView() -> some View {
         if let status = novel.status {
-            let icon = status == "Completed" ? "checkmark.seal.fill" : "hourglass"
-            DetailItem(icon: icon, label: "Status", value: status, alignment: .hStack)
+            DetailItem(itemType: .status(status == "Completed" ? .completed : .ongoing), value: status, alignment: .hStack)
         }
     }
 }
@@ -152,5 +152,7 @@ fileprivate extension BookDetailView {
         novel.lastChapter = "2165 Chapters"
         return novel
     }()
-    BookDetailView(novel: model)
+    BookDetailView(novel: model, onDelete: {
+
+    })
 }

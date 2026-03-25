@@ -26,7 +26,6 @@ class NovelListService: BaseNovelRequest {
 }
 
 extension NovelListService {
-    @MainActor
     func fetchNovelListPublisher(modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         WebService.downloadDataPublisher(self)
             .tryMap { (response: NovelListResponse) in
