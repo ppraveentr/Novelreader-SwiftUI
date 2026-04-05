@@ -8,87 +8,137 @@
 import SwiftUI
 
 struct BookDetailCard: View {
-    let author: String
-    let genre: [String]?
-    let source: String
-    let status: String
+    let source, status: String?
+    var rating: RatingModel?
 
     var body: some View {
-        GeometryReader { geometry in
-            let isHorizontal = geometry.size.width > 500
-            AlignedStack(isHorizontal ? .hStack : .vStack, spacing: isHorizontal ? 16 : 12) {
-                DetailItem(itemType: .author, value: author)
-                if let genre = genre {
-                    DetailItem(itemType: .genre, value: genre.compactMap { $0 }.joined(separator: ", "))
-                }
+        AlignedStack(.hStack(), spacing: 16) {
+            if let status {
+                DetailItem(itemType: .status(.init(rawValue: status) ?? .ongoing), value: status)
+            }
+            if let source {
                 DetailItem(itemType: .source, value: source)
             }
-            .padding()
+            if let rating {
+                DetailItem(itemType: .rating(rating: rating), value: rating.formatReviewCount)
+            }
         }
+    }
+}
+
+struct RatingModel {
+    var rating: Double
+    var maxRating = 5.0
+    var maxPossibleRating = 10.0
+    var reviews: String?
+
+    var shownRating: Double {
+        (rating / maxPossibleRating) * Double(maxRating)
+    }
+
+    var formatReviewCount: String {
+        guard let reviews, let count = Int(reviews) else { return "" }
+        switch count {
+        case 1_000_000...:
+            return String(format: "%.1fM", Double(count) / 1_000_000)
+        case 1_000...:
+            return String(format: "%.1fK", Double(count) / 1_000)
+        default:
+            return "\(count)"
+        }
+    }
+
+    func starImage() -> AnyView {
+        AnyView(
+            HStack(spacing: 1) {
+                ForEach(1...Int(maxRating), id: \.self) { index in
+                    stars(Double(index), shownRating: shownRating)
+                }
+            }
+        )
+    }
+
+    private func stars(_ starValue: Double, shownRating: Double) -> some View {
+        var imageName = "star"
+        if shownRating >= starValue {
+            imageName = "star.fill"
+        } else if shownRating >= starValue - 0.75, shownRating < starValue - 0.25 {
+            imageName = "star.leadinghalf.filled"
+        }
+        return Image(systemName: imageName)
+            .foregroundColor(.yellow)
     }
 }
 
 struct DetailItem: View {
     enum ViewType {
-        case author, genre, source, status(State)
+        case genre, source, status(State)
+        case rating(rating: RatingModel)
 
-        enum State {
+        enum State: String {
             case ongoing, completed
         }
 
-        var icon: String {
+        func imageView(_ icon: String) -> AnyView {
+            AnyView(
+                Image(systemName: icon)
+                    .foregroundColor(.accentColor)
+            )
+        }
+
+        var icon: AnyView {
             switch self {
-            case .author:
-                return "person.fill"
             case .genre:
-                return "books.vertical.fill"
+                imageView("books.vertical.fill")
             case .source:
-                return "globe"
+                imageView("globe")
             case let .status(state):
-                return state == .ongoing ? "hourglass" : "checkmark.seal.fill"
+                imageView(state == .ongoing ? "hourglass" : "checkmark.seal.fill")
+            case let .rating(rating):
+                rating.starImage()
             }
         }
 
         var label: String {
             switch self {
-            case .author:
-                return "Author"
             case .genre:
-                return "Genre"
+                "Genre"
             case .source:
-                return "Source"
+                "Source"
             case .status:
-                return "Status"
+                "Status"
+            case let .rating(rating):
+                "Rating: \(rating.rating.rounded(.toNearestOrEven))"
             }
         }
     }
 
     var itemType: ViewType
     let value: String
-    var alignment: StackAlignment = .vStack
+    var alignment: StackAlignment = .vStack()
 
     var body: some View {
-        AlignedStack(.hStack) {
-            Image(systemName: itemType.icon)
-                .foregroundColor(.accentColor)
-            AlignedStack(alignment, spacing: EdgeInsets.contentOffset) {
+        Group {
+            AlignedStack(.vStack(.center), spacing: EdgeInsets.contentPadding) {
                 Text(itemType.label)
                     .font(.headline)
                     .foregroundColor(.secondary)
+                itemType.icon
                 Text(value)
-                    .fontWeight(.medium)
-                    .multilineTextAlignment(.leading)
+                    .fontWeight(.semibold)
+                    .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            .frame(maxHeight: .greatestFiniteMagnitude, alignment: .top)
         }
+        .padding(.edgeSidePadding)
     }
 }
 
 #Preview {
     BookDetailCard(
-        author: "Passion Honey, 百香蜜",
-        genre: ["Romance", "Drama", "Josei"],
         source: "Qidian International",
-        status: "Completed"
+        status: "Completed",
+        rating: RatingModel(rating: 5, reviews: "21212")
     )
 }

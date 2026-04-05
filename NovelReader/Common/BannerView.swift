@@ -53,8 +53,8 @@ struct BannerView: View {
     let action: () -> Void
 
     var body: some View {
-        AlignedStack(.vStack) {
-            AlignedStack(.hAlignedStack(alignment: .center)) {
+        AlignedStack {
+            AlignedStack(.hStack(.center)) {
                 Text(message)
                     .padding()
                     .frame(maxWidth: .infinity)

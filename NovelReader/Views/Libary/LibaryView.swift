@@ -55,7 +55,7 @@ struct LibaryView: View {
                 .modelContext(modelContext)
             }
             NavigationLink(destination: des(novel)) {
-                BookCellView(novel: novel).modelContext(modelContext)
+                BookTitleView(novel: novel).modelContext(modelContext)
             }
         }
         SpinnerView(isShowing: viewModel.isLoading)

@@ -8,9 +8,8 @@
 import SwiftUI
 
 enum StackAlignment {
-    case vStack, hStack
-    case vAlignedStack(alignment: HorizontalAlignment)
-    case hAlignedStack(alignment: VerticalAlignment)
+    case vStack(_ alignment: HorizontalAlignment = .leading)
+    case hStack(_ alignment: VerticalAlignment = .top)
 }
 
 struct AlignedStack<Content: View>: View {
@@ -18,7 +17,7 @@ struct AlignedStack<Content: View>: View {
     let spacing: CGFloat
     let content: () -> Content
 
-    init(_ alignment: StackAlignment = .vStack, spacing: CGFloat = EdgeInsets.contentOffset,
+    init(_ alignment: StackAlignment = .vStack(), spacing: CGFloat = EdgeInsets.contentOffset,
          @ViewBuilder content: @escaping () -> Content) {
         self.alignment = alignment
         self.spacing = spacing
@@ -27,13 +26,9 @@ struct AlignedStack<Content: View>: View {
 
     var body: some View {
         switch alignment {
-        case .vStack:
-            VStack(alignment: .leading, spacing: spacing, content: content)
-        case let .vAlignedStack(alignment):
+        case let .vStack(alignment):
             VStack(alignment: alignment, spacing: spacing, content: content)
-        case .hStack:
-            HStack(alignment: .top, spacing: spacing, content: content)
-        case let .hAlignedStack(alignment):
+        case let .hStack(alignment):
             HStack(alignment: alignment, spacing: spacing, content: content)
         }
     }

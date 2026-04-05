@@ -64,7 +64,7 @@ private extension NovelListView {
                 viewModel.fetchNovels(modelContext: modelContext)
             },
             content: {
-                ResponsiveGrid(viewWidth: width, shrinkedView: viewModel.selectedNovel != nil, isLoading: viewModel.isLoading) {
+                ResponsiveGrid(width: width, shrinkedView: viewModel.selectedNovel != nil, isLoading: viewModel.isLoading) {
                     listView()
                 }
             }
@@ -82,7 +82,7 @@ private extension NovelListView {
     }
 
     func mainBody(for geo: GeometryProxy) -> some View {
-        HStack(spacing: 0) {
+        AlignedStack(spacing: 0) {
             // Left side: novel grid/list view with search capability, in its own NavigationStack so search bar is scoped ONLY to the grid
             NavigationStack {
                 novelGridView(geo.size.width)
@@ -104,25 +104,34 @@ private extension NovelListView {
     }
 
     func listView() -> some View {
-        ForEach(viewModel.novels, id: \.identifier) { novel in
-            let des = { novel in
-                BookDetailView(novel: novel) {
-                    // Prevent crash if novel is deleted
-                    viewModel.selectedNovel = nil
-                }
-                .modelContext(modelContext)
-            }
-            if isPhone {
-                NavigationLink(destination: des(novel)) {
-                    BookCellView(novel: novel).modelContext(modelContext)
-                }
-            } else {
-                BookCellView(novel: novel)
-                    .modelContext(modelContext)
-                    .onTapGesture {
-                        viewModel.selectedNovel = novel
+        GlassEffectContainer(spacing: 10) {
+            ForEach(viewModel.novels, id: \.identifier) { novel in
+                let des = { novel in
+                    BookDetailView(novel: novel) {
+                        // Prevent crash if novel is deleted
+                        viewModel.selectedNovel = nil
                     }
+                    .modelContext(modelContext)
+                }
+                if isPhone {
+                    NavigationLink(destination: des(novel)) {
+                        BookTitleView(novel: novel)
+                            .modelContext(modelContext)
+                    }
+                } else {
+                    BookTitleView(novel: novel)
+                        .modelContext(modelContext)
+                        .onTapGesture {
+                            viewModel.selectedNovel = novel
+                        }
+                }
             }
         }
+    }
+}
+
+#Preview("Novel List") {
+    NavigationStack {
+        NovelListView()
     }
 }

@@ -2,7 +2,7 @@
 import SwiftUI
 
 struct ResponsiveGrid<Content: View>: View {
-    let viewWidth: CGFloat
+    let width: CGFloat
     let shrinkedView: Bool
     let isLoading: Bool
     @ViewBuilder let content: () -> Content
@@ -12,7 +12,7 @@ struct ResponsiveGrid<Content: View>: View {
 
     var body: some View {
         if horizontalSizeClass == .regular {
-            let columnCount = (viewWidth < 600 || shrinkedView) ? 1 : 2
+            let columnCount = (width < 600 || shrinkedView) ? 1 : 2
             LazyVGrid(columns: Array(repeating: grid, count: columnCount), spacing: 16) {
                 content()
             }

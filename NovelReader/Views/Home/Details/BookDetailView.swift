@@ -18,17 +18,35 @@ struct BookDetailView: View {
     @StateObject private var viewModel: BookDetailViewModel = BookDetailViewModel()
     @State private var selectedTab = 0
     @State private var saved: Bool = false
+    @State private var isSummaryExpanded: Bool = false
     let novel: NovelModel
     let onDelete: (() -> Void)
 
     var body: some View {
         NRScrollView {
+            BookTitleView(novel: novel, showLastChapter: false)
             Spacer()
-            boodTitle()
+            // Book Status View
+            BookDetailCard(source: novel.source, status: novel.status, rating: rating())
+            Spacer()
+            ExpandableText(text: novel.summary ?? "", lineLimit: 5, font: .body)
             Spacer()
             lastChapter()
-            Spacer()
-            pickerStyle()
+        }
+        .safeAreaInset(edge: .bottom) {
+            HStack(alignment: .center) {
+                Spacer()
+                SpinnerView(isShowing: viewModel.isChapterDetailsLoading)
+                if !viewModel.isChapterDetailsLoading {
+                    Text("Read Now")
+                        .font(.headline)
+                }
+                Spacer()
+            }
+            .padding(.edgePadding)
+            .background(.ultraThinMaterial)
+            .clipShape(.rect(cornerRadius: 16))
+            .padding(EdgeInsets.contentSpacing)
         }
         .onAppear {
             Task {
@@ -50,61 +68,10 @@ struct BookDetailView: View {
 fileprivate extension BookDetailView {
 
     @ViewBuilder
-    func boodTitle() -> some View {
-        AlignedStack {
-            HStack(spacing: EdgeInsets.contentPadding) {
-                // Thumbnail image in the list row
-                NRImageView(imageUrl: novel.imageUrl)
-                // Novel Title
-                AlignedStack {
-                    Text(novel.name)
-                        .font(.title)
-                        .bold()
-                        .foregroundColor(.primary)
-                    if let author = novel.author {
-                        AuthorView(author: author)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .frame(maxWidth: .infinity)
-            Spacer()
-            // Book Status View
-            statusView()
-            Spacer()
-            // Rating View
-            if let rating = novel.rating {
-                RatingView(rating: rating, reviews: novel.views)
-            }
-            Spacer()
-        }
-        .padding(.edgePadding)
-    }
-
-    @ViewBuilder
     func pickerStyle() -> some View {
-        Picker("", selection: $selectedTab) {
-            Text("Synopsis").tag(0)
-            Text("Book Detail").tag(1)
-        }
-        .pickerStyle(.segmented)
-        .padding(.vertical)
+        Text(novel.summary ?? "")
+            .font(.body)
         .padding(.edgePadding)
-
-        Group {
-            if selectedTab == 0 {
-                Text(novel.summary ?? "")
-                    .font(.body)
-                    .padding(.edgePadding)
-            } else {
-                BookDetailCard(
-                    author: novel.author ?? "",
-                    genre: novel.genres,
-                    source: novel.source ?? "",
-                    status: novel.status ?? ""
-                )
-            }
-        }
         .transition(.opacity)
     }
 
@@ -117,12 +84,8 @@ fileprivate extension BookDetailView {
             } label: {
                 HStack {
                     AlignedStack {
-                        Text("Last Chapter")
+                        Text("Last Chapter: " + lastChapter)
                             .font(.headline)
-                        Text(lastChapter)
-                            .font(.body)
-                            .foregroundColor(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer()
                     Image(systemName: "chevron.right")
@@ -131,15 +94,16 @@ fileprivate extension BookDetailView {
                 .foregroundColor(.primary)
             }
             .buttonStyle(.plain)
-            .padding(.edgePadding)
+            .padding(.edgeSidePadding)
         }
     }
 
-    @ViewBuilder
-    func statusView() -> some View {
-        if let status = novel.status {
-            DetailItem(itemType: .status(status == "Completed" ? .completed : .ongoing), value: status, alignment: .hStack)
+    func rating() -> RatingModel? {
+        // Rating View
+        guard let rating = novel.rating, let value = Double(rating) else {
+            return nil
         }
+        return RatingModel(rating: value, reviews: novel.views)
     }
 }
 

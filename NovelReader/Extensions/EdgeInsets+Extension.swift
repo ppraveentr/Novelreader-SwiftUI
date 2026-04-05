@@ -13,5 +13,6 @@ extension EdgeInsets {
     static let contentOffset = 8.0
     static let contentPadding = 12.0
     static let contentSpacing = 14.0
-    static let edgePadding = EdgeInsets(top: 0.0, leading: 12.0, bottom: 10.0, trailing: 12.0)
+    static let edgePadding = EdgeInsets(top: 12.0, leading: 12.0, bottom: 10.0, trailing: 12.0)
+    static let edgeSidePadding = EdgeInsets(top: 0, leading: 12.0, bottom: 0, trailing: 12.0)
 }

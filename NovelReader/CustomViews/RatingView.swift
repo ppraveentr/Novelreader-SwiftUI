@@ -8,33 +8,52 @@
 import SwiftUI
 
 struct RatingView: View {
-    var rating: String?
+
+    var rating: Double
+    var maxRating = 5.0
+    var max​Possible​Rating = 10.0
     var reviews: String?
 
+    private var shownRating: Double {
+        (rating / max​Possible​Rating) * Double(maxRating)
+    }
+
     var body: some View {
-        VStack(alignment: .leading) {
-            HStack(spacing: EdgeInsets.contentPadding) {
-                if let rating = rating, let value = Double(rating)?.rounded() {
-                    ForEach(1...10, id: \.self) { index in
-                        Image(systemName: index <= Int(value) ? "star.fill" : "star")
-                            .foregroundColor(.yellow)
+        AlignedStack {
+            Group {
+                AlignedStack(.hStack(), spacing: EdgeInsets.contentPadding) {
+                    ForEach(1...Int(maxRating), id: \.self) { index in
+                        image(Double(index), shownRating: shownRating)
                     }
-                    Text(rating)
+                    Text(String(format: "%.1f", shownRating))
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                }
+
+                if let reviews = reviews {
+                    let count = formatReviewCount(reviews)
+                    Text("\(count) reviews")
                         .font(.headline)
                         .foregroundColor(.gray)
                 }
             }
-
-            if let reviews = reviews {
-                let count = formatReviewCount(reviews)
-                Text("\(count) reviews")
-                    .font(.headline)
-                    .foregroundColor(.gray)
-            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .padding(.edgeSidePadding)
     }
 
-    func formatReviewCount(_ count: String) -> String {
+    private func image(_ starValue: Double, shownRating: Double) -> some View {
+        var imageName = "star"
+        if shownRating >= starValue {
+            imageName = "star.fill"
+        } else if shownRating >= starValue - 0.75, shownRating < starValue - 0.25 {
+            imageName = "star.leadinghalf.filled"
+        }
+        return Image(systemName: imageName)
+            .foregroundColor(.yellow)
+    }
+
+    private func formatReviewCount(_ count: String) -> String {
         let count: Int = Int(count) ?? 0
         switch count {
         case 1_000_000...:
