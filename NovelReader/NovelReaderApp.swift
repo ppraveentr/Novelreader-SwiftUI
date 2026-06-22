@@ -7,26 +7,26 @@
 //
 
 import SwiftUI
-import Theme
+import Combine
 
 @main
 struct NovelReaderApp: App {
-    let persistenceController = PersistenceController.shared
+    @State var appManager = AppManager.shared
+    @State private var isLoadingAppContent = true
+    @State private var selection: Destinations = .home
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .onAppear {
-                    Task {
-                        await loadThemeModel()
-                    }
+            ZStack {
+                if isLoadingAppContent {
+                    SplashView()
+                        .transition(.move(edge: .bottom))
+                } else {
+                    Destinations.tabBarView($selection)
                 }
+            }
+            .appStartup(isLoadingAppContent: $isLoadingAppContent)
+            .persistenceManager(appManager.dbManger)
         }
     }
-}
-
-private func loadThemeModel() async {
-    guard let lightTheme = try? Data.contentOfFile("Theme.json") else { return }
-    try? ThemesManager.setupApplicationTheme(lightTheme)
 }
