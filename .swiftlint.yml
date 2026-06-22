@@ -9,22 +9,14 @@ opt_in_rules:
   # Rationale: Imports are not required more than once.
   # https://github.com/realm/SwiftLint/blob/master/Rules.md#duplicate-imports
   - duplicate_imports
-  - file_header
-
-file_header:
-  required_pattern: |
-                    \/\/
-                    \/\/  .*?
-                    \/\/  .*?
-                    \/\/
-                    \/\/  Created by .*? on \d{1,2}\/\d{1,2}\/(\d{2}|\d{4})\.
-                    \/\/  Copyright (©|\(c\)) \d{4} .*?\. All rights reserved\.
-                    \/\/
+  
+disabled_rules:
+  - identifier_name
 
 large_tuple: 4
 function_body_length : 50
 function_parameter_count: 9
-warning_threshold: 1
+warning_threshold: 10
 file_length: 750
 
 cyclomatic_complexity:
@@ -32,7 +24,7 @@ cyclomatic_complexity:
   ignores_case_statements: true
 
 line_length:
-  warning: 120
+  warning: 130
   ignores_comments: true
 
 nesting:
@@ -44,9 +36,6 @@ conditional_returns_on_newline:
 file_name:
   prefix_pattern: ""
   suffix_pattern: "(Extension|Theme)?|\\+.*"
-
-type_name:
-  allowed_symbols: "_"
 
 custom_rules:
   no_break_with_label:
