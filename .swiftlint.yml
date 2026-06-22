@@ -9,6 +9,9 @@ opt_in_rules:
   # Rationale: Imports are not required more than once.
   # https://github.com/realm/SwiftLint/blob/master/Rules.md#duplicate-imports
   - duplicate_imports
+  
+disabled_rules:
+  - identifier_name
 
 large_tuple: 4
 function_body_length : 50
@@ -33,9 +36,6 @@ conditional_returns_on_newline:
 file_name:
   prefix_pattern: ""
   suffix_pattern: "(Extension|Theme)?|\\+.*"
-
-type_name:
-  allowed_symbols: "_"
 
 custom_rules:
   no_break_with_label:
