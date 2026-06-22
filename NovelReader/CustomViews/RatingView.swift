@@ -11,11 +11,11 @@ struct RatingView: View {
 
     var rating: Double
     var maxRating = 5.0
-    var max​Possible​Rating = 10.0
+    var maxPossibleRating = 10.0
     var reviews: String?
 
     private var shownRating: Double {
-        (rating / max​Possible​Rating) * Double(maxRating)
+        (rating / maxPossibleRating) * Double(maxRating)
     }
 
     var body: some View {

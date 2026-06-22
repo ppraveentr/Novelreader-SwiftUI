@@ -78,8 +78,8 @@ public extension RequestObject {
             }
         } else if (value as? NSNull) != nil {
             result.append(URLQueryItem(name: key, value: nil))
-        } else if let v = value {
-            result.append(URLQueryItem(name: key, value: "\(v)"))
+        } else if let value {
+            result.append(URLQueryItem(name: key, value: "\(value)"))
         } else {
             result.append(URLQueryItem(name: key, value: nil))
         }

@@ -11,7 +11,7 @@ import Foundation
 
 enum ContentLoader {
     static func preloadDBData(_ dbName: String) throws -> URL {
-        guard let sourceURL = ContentBundle.url(forResource: dbName, withExtension: nil) else {
+        guard let sourceURL = contentBundle.url(forResource: dbName, withExtension: nil) else {
             debugPrint("DB missing, Could not preload data")
             throw NSError(domain: "DB missing, Could not preload data", code: 500)
         }

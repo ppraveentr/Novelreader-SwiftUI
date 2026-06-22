@@ -9,6 +9,6 @@ import Foundation
 
 private final class Utility { }
 
-var ContentBundle: Bundle {
+var contentBundle: Bundle {
     Bundle(for: Utility.self)
 }

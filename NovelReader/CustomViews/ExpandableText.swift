@@ -50,9 +50,16 @@ struct ExpandableText: View {
 
 #Preview {
     let value: String = {
-        """
-<p>Starting over once more, he has entered this “living game” again in order to control his own fate.</p><p>This time, he will not be controlled by others.</p><p>Previously the Level 200 Sword King, he will rise to a higher peak in this life.</p><p>Methods to earn money! Dungeon conquering strategies! Legendary Quests! Equipment drop locations! Undiscovered battle techniques!</p><p>Even the secrets Beta Testers were unknowledgeable of, he knows of them all.</p><p>Massive wars, life advancement, entering Godhood, sword reaching to the peak; a legend of a man becoming a Sword God has begun.</p><p>Translator: Hellscythe</p><p>Editor: FluffyGoblyn (most of the time), MindLitUp (sometimes), Vampirecat (sometimes)</p>
-"""
+        "<p>Starting over once more, he has entered this “living game” again in order to control his own fate.</p>"
+        + "<p>This time, he will not be controlled by others.</p>"
+        + "<p>Previously the Level 200 Sword King, he will rise to a higher peak in this life.</p>"
+        + "<p>Methods to earn money! Dungeon conquering strategies! Legendary Quests! Equipment drop locations!"
+        + " Undiscovered battle techniques!</p>"
+        + "<p>Even the secrets Beta Testers were unknowledgeable of, he knows of them all.</p>"
+        + "<p>Massive wars, life advancement, entering Godhood, sword reaching to the peak; a legend of a man"
+        + " becoming a Sword God has begun.</p>"
+        + "<p>Translator: Hellscythe</p>"
+        + "<p>Editor: FluffyGoblyn (most of the time), MindLitUp (sometimes), Vampirecat (sometimes)</p>"
     }()
 
     ExpandableText(text: value, lineLimit: 2)
