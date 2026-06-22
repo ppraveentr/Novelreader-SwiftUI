@@ -21,7 +21,6 @@ public enum NovelModelCopyService {
 
     /// Deletes the NovelModel (and its chapters) from the server container, if available.
     /// - Parameter identifier: The identifier of the novel to delete.
-    @discardableResult
     @MainActor
     public static func removeNovelWithChapters(identifier: String, serverContext: ModelContext) async throws {
         guard let localNovel = getNovel(identifier: identifier, context: serverContext) else { return }
@@ -37,7 +36,7 @@ public enum NovelModelCopyService {
     public static func copyNovelWithChapters(identifier: String,
                                              localContext: ModelContext,
                                              serverContext: ModelContext) async throws -> NovelModel? {
-        guard let localNovel = try? getNovel(identifier: identifier, context: localContext) else {
+        guard let localNovel = getNovel(identifier: identifier, context: localContext) else {
             return nil
         }
         // Deep copy model

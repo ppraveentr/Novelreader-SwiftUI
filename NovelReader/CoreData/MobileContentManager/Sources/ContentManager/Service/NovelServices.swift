@@ -19,17 +19,21 @@ extension BaseNovelRequest {
 public enum NovelServices {
     public static var appBaseURL = ""
 
-    public static func syncNovelListPublisher(page: Int, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
+    public static func syncNovelListPublisher(_ list: NovelListModel, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         let listService = NovelListService()
-        listService.requestQuery = [URLQueryItem(name: "page", value: String(page))]
-        return listService.fetchNovelListPublisher(modelContext: modelContext)
+        let page = list.pageCount + 1
+        let pageQuery = URLQueryItem(name: "page", value: String(page))
+        let typeQuery = URLQueryItem(name: "type", value: list.identifier)
+
+        listService.requestQuery = [pageQuery, typeQuery]
+        return listService.fetchNovelListPublisher(list, modelContext: modelContext)
     }
 
     public static func syncNovelDetailsPublisher(_ novel: NovelModel, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         let detailService = NovelDetailService()
         let idQuery = URLQueryItem(name: "id", value: novel.identifier)
         detailService.requestQuery = [idQuery]
-        return detailService.fetchNovelListPublisher(novel, modelContext: modelContext)
+        return detailService.fetchNovelDetailPublisher(novel, modelContext: modelContext)
     }
 
     public static func syncChapterListPublisher(_ novel: NovelModel, modelContext: ModelContext) -> AnyPublisher<Void, Error> {

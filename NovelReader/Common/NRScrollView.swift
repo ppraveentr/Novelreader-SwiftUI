@@ -11,15 +11,14 @@ struct NRScrollView<Content>: View where Content: View {
     private var content: () -> Content
     private let axes: Axis.Set
     private let onBottomReached: (() -> Void)?
-    @State private var isAtBottom = false
-    @State private var debounceWorkItem: DispatchWorkItem?
+    @State private var scrollPosition: UUID?
+    @State private var didFireBottom = false
+    private let bottomID = UUID()
 
     /// NRScrollView is a flexible scroll container for SwiftUI.
     ///
-    /// You can provide any layout as the content, such as a ForEach in a VStack/LazyVStack for lists, or a LazyVGrid for grids/collections.
-    /// This allows the caller to adapt the layout for iPhone (list) or iPad (grid) based on device or trait environment.
-    /// The `axes` parameter controls the scrolling direction, and `content` is a `@ViewBuilder` closure.
-    /// The bottom marker uses the container height to detect when the bottom is reached.
+    /// Now uses the modern scroll position API (`.scrollPosition(id:)`) to detect when the user reaches the bottom.
+    /// Add your content as usual. Optionally provide `onBottomReached`.
     init(_ axes: Axis.Set = .vertical, onBottomReached: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) {
         self.axes = axes
         self.onBottomReached = onBottomReached
@@ -29,11 +28,11 @@ struct NRScrollView<Content>: View where Content: View {
     var body: some View {
         ScrollViewReader { _ in
             ScrollView(axes, showsIndicators: true) {
-                VStack {
+                VStack(alignment: .center, spacing: 0) {
                     content()
                     if onBottomReached != nil {
-                        // Marker at the bottom
-                        geomentryReader()
+                        // Invisible bottom marker
+                        Color.clear.frame(height: 1).id(bottomID)
                     }
                 }
                 .scrollTargetLayout()
@@ -41,35 +40,21 @@ struct NRScrollView<Content>: View where Content: View {
             .contentMargins(EdgeInsets.contentOffset)
             .scrollTargetBehavior(.viewAligned)
             .frame(maxWidth: .infinity)
-        }
-    }
-
-    @ViewBuilder
-    func geomentryReader() -> some View {
-        // Marker at the bottom
-        GeometryReader { geo in
-            Color.clear
-                .frame(height: 1)
-                .onAppear { isAtBottom = true }
-                .onDisappear { isAtBottom = false }
-                .onChange(of: geo.frame(in: .global).maxY) { _, newY in
-                    update(newY, containerHeight: geo.frame(in: .global).height)
+            .scrollPosition(id: $scrollPosition)
+            .onChange(of: scrollPosition) { _, newValue in
+                // Fire only once per reach to bottom; reset when we move away
+                if newValue == bottomID {
+                    if didFireBottom == false {
+                        didFireBottom = true
+                        onBottomReached?()
+                    }
+                } else {
+                    // Moved away from bottom; allow future triggers
+                    if didFireBottom {
+                        didFireBottom = false
+                    }
                 }
-        }
-        .frame(height: 1)
-    }
-
-    func update(_ newY: CGFloat, containerHeight: CGFloat) {
-        let screenHeight = containerHeight
-        let atBottom = newY < screenHeight - 100
-        if atBottom && !isAtBottom {
-            debounceWorkItem?.cancel()
-            let workItem = DispatchWorkItem {
-                onBottomReached?()
             }
-            debounceWorkItem = workItem
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: workItem)
         }
-        isAtBottom = atBottom
     }
 }

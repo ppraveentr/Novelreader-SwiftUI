@@ -54,7 +54,7 @@ public extension RequestObject {
     }
 
     func jsonString(_ data: Codable) -> String? {
-        if let data = data as? Codable, var jsn = try? self.jsonModel(data) {
+        if var jsn = try? self.jsonModel(data) {
             jsn.stripNilElements()
             if JSONSerialization.isValidJSONObject(jsn),
                let data = try? JSONSerialization.data(withJSONObject: jsn, options: .prettyPrinted) {
@@ -88,8 +88,7 @@ public extension RequestObject {
 
     // FORM
     func formData() -> Data? {
-        guard let obj = self.requestBody as? Codable,
-              let json = try? jsonModel(obj) else { return nil }
+        guard let obj = requestBody, let json = try? jsonModel(obj) else { return nil }
         var postData: Data?
         json.forEach { arg in
             let key = arg.key

@@ -8,6 +8,7 @@
 
 import ContentManager
 import SwiftUI
+import SwiftData
 
 enum BookDetailRoute: Hashable {
     case chapterList
@@ -82,11 +83,9 @@ fileprivate extension BookDetailView {
             NavigationLink {
                 ChapterListView(novel: chapters)
             } label: {
-                HStack {
-                    AlignedStack {
-                        Text("Last Chapter: " + lastChapter)
-                            .font(.headline)
-                    }
+                AlignedStack {
+                    Text("Last Chapter: " + lastChapter)
+                        .font(.headline)
                     Spacer()
                     Image(systemName: "chevron.right")
                 }

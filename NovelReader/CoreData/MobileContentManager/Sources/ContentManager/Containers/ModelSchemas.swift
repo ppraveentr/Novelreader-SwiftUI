@@ -11,7 +11,7 @@ import SwiftData
 enum ModelSchemas {
     static let schemasTypes: [any PersistentModel.Type] = [
         VisualContent.self,
-        NovelModel.self
+        NovelListModel.self
     ]
 
     // MARK: CMS Content
@@ -29,7 +29,7 @@ enum ModelSchemas {
     // MARK: Service Model
 
     static let serviceSchemas: [any PersistentModel.Type] = [
-        NovelModel.self
+        NovelListModel.self
     ]
 
     static var serviceModelSchmeas: Schema {

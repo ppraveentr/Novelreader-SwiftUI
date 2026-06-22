@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ConditionalGlassEffect: ViewModifier {
-    let apply: Bool
+    var apply: Bool = true
     func body(content: Content) -> some View {
         if apply {
             content.glassEffect(.regular.interactive(), in: .rect(cornerRadius: 16))

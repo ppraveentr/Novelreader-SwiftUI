@@ -14,35 +14,30 @@ class NovelListService: BaseNovelRequest {
     typealias ResponseType = NovelListResponse.Type
 
     var type: ReqeustType { .GET }
-    var path = "novel/list"
-
+    var path: String = "novel/list"
     var requestBody: Codable?
     var responseBody: Codable?
     var requestQuery: [URLQueryItem]?
 
     struct NovelListResponse: ServiceModel {
-        var response: [ServiceNovelModel]
+        var response: ServiceNovelListModel
     }
 }
 
 extension NovelListService {
-    func fetchNovelListPublisher(modelContext: ModelContext) -> AnyPublisher<Void, Error> {
+    func fetchNovelListPublisher(_ list: NovelListModel, modelContext: ModelContext) -> AnyPublisher<Void, Error> {
         WebService.downloadDataPublisher(self)
             .tryMap { (response: NovelListResponse) in
-                let itemData = response.response.filter { !$0.identifier.isEmpty && !$0.name.isEmpty }
+                let itemData = response.response.novels.filter { !$0.identifier.isEmpty && !$0.name.isEmpty }
                 guard !itemData.isEmpty else {
                     debugPrint("NovelListService: No data received or failed to decode response.")
                     throw NetworkError.failedToDecodeResponse
                 }
-                return itemData
+                return response.response
             }
             .receive(on: DispatchQueue.main)
-            .handleEvents(receiveOutput: { itemData in
-                itemData.forEach {
-                    let model = NovelModel(service: $0)
-                    model.update(service: $0, context: modelContext)
-                    modelContext.insert(model)
-                }
+            .handleEvents(receiveOutput: { (novelList: ServiceNovelListModel) in
+                list.update(from: novelList, context: modelContext)
                 try? modelContext.save()
             })
             .map { _ in () }

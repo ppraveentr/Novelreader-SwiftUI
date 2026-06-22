@@ -25,7 +25,7 @@ public enum NetworkError: Error {
             return "Invalid Request"
         case .failedToDecodeResponse:
             return "Failed to decode response"
-        case .networkUnreachable(underlying: let underlying):
+        case .networkUnreachable:
             return "Network Unreachable"
         }
     }
@@ -93,7 +93,7 @@ private extension WebService {
     }
 
     static func prepareHttpBody(for request: any RequestObject) -> Data? {
-        guard let body = request.requestBody as? Codable else { return nil }
+        guard let body = request.requestBody else { return nil }
         return request.jsonModelData(body)
     }
 
@@ -104,6 +104,8 @@ private extension WebService {
         guard response.statusCode >= 200 && response.statusCode < 300 else {
             throw NetworkError.badStatus
         }
+        debugPrint("Response:")
+        debugPrint(String(data: output.data, encoding: .utf8) ?? nil)
         return output.data
     }
 
@@ -111,6 +113,7 @@ private extension WebService {
         if let urlError = error as? URLError, urlError.code == .cannotConnectToHost {
             return NetworkError.networkUnreachable(underlying: urlError)
         }
+        debugPrint(error)
         return error
     }
 }

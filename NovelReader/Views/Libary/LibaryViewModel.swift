@@ -14,9 +14,13 @@ import SwiftUI
 class LibaryViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var error: Error?
-    private var page: Int = 1
-    private var pageSize: Int = 38
-    private var canLoadNextPage = true
+    private let type: NovelListType = .completed
+    private var listModel: NovelListModel?
+
+    private var canLoadNextPage: Bool {
+        guard let model = listModel else { return true }
+        return model.currentPage < model.pageCount
+    }
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -28,19 +32,40 @@ class LibaryViewModel: ObservableObject {
         } catch {
             debugPrint("Failed to delete NovelModel.")
         }
-        page = 1
-        canLoadNextPage = true
+        do {
+            try modelContext.delete(model: NovelListModel.self)
+        } catch {
+            debugPrint("Failed to delete NovelListModel.")
+        }
+        listModel = nil
         isLoading = false
-        fetchNovels(modelContext: modelContext)
+        fetchNovels(modelContext)
     }
 
     // The context should be injected (from the SwiftUI environment)
     @MainActor
-    func fetchNovels(modelContext: ModelContext) {
+    func fetchNovels(_ modelContext: ModelContext) {
         guard cancellables.isEmpty, !isLoading && canLoadNextPage else { return }
         isLoading = true
         error = nil
-        NovelServices.syncNovelListPublisher(page: page, modelContext: modelContext)
+
+        // Ensure we have a persisted NovelListModel for this list type
+        if listModel == nil {
+            listModel = NovelListModel.fetchModel(for: type, modelContext: modelContext)
+        }
+
+        guard let listModel else {
+            isLoading = false
+            return
+        }
+
+        // If we've reached the last page, stop
+        guard canLoadNextPage || listModel.currentPage == 0 else {
+            isLoading = false
+            return
+        }
+
+        NovelServices.syncNovelListPublisher(listModel, modelContext: modelContext)
             .throttle(for: .seconds(2), scheduler: DispatchQueue.main, latest: false)
             .delay(for: .milliseconds(Int.random(in: 0...200)), scheduler: DispatchQueue.main)
             .receive(on: DispatchQueue.main)
@@ -49,9 +74,6 @@ class LibaryViewModel: ObservableObject {
                 self.isLoading = false
                 if case let .failure(err) = completion {
                     self.error = err
-                } else {
-                    self.page += 1
-                    self.canLoadNextPage = self.page < pageSize
                 }
                 self.cancellables.removeAll()
             }, receiveValue: {

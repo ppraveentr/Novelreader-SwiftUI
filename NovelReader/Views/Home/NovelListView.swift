@@ -22,7 +22,7 @@ struct NovelListView: View {
 
     @State private var showingProfile = false
     @StateObject private var viewModel = NovelListViewModel()
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
     // Use the object for localContainer
     @EnvironmentObject private var localProvider: LocalContainerProvider
     // Model Context
@@ -35,7 +35,7 @@ struct NovelListView: View {
             mainBody(for: geo)
                 .onAppear {
                     if viewModel.novels.isEmpty {
-                        viewModel.fetchNovels(modelContext: modelContext)
+                        viewModel.fetchNovels(modelContext)
                     }
                 }
                 .navigationTitle(DataConstants.titleText.content + " \(viewModel.novels.count)")
@@ -54,14 +54,19 @@ struct NovelListView: View {
 }
 
 private extension NovelListView {
-    var isPhone: Bool {
-        horizontalSizeClass == .compact
+
+    func mainBody(for geo: GeometryProxy) -> some View {
+        AlignedStack(.hStack(.top), spacing: 0) {
+            NavigationStack {
+                novelGridView(geo.size.width)
+            }
+        }
     }
 
     func novelGridView(_ width: CGFloat) -> some View {
         NRScrollView(
             onBottomReached: {
-                viewModel.fetchNovels(modelContext: modelContext)
+                viewModel.fetchNovels(modelContext)
             },
             content: {
                 ResponsiveGrid(width: width, shrinkedView: viewModel.selectedNovel != nil, isLoading: viewModel.isLoading) {
@@ -73,60 +78,22 @@ private extension NovelListView {
         .searchable(text: $viewModel.searchQuery)
     }
 
-    func formatedWidth(_ geo: GeometryProxy) -> CGFloat {
-        let wid = geo.size.width
-        if isPhone || viewModel.selectedNovel == nil {
-            return wid
-        }
-        return geo.size.width * 0.4
-    }
-
-    func mainBody(for geo: GeometryProxy) -> some View {
-        AlignedStack(spacing: 0) {
-            // Left side: novel grid/list view with search capability, in its own NavigationStack so search bar is scoped ONLY to the grid
-            NavigationStack {
-                novelGridView(geo.size.width)
-            }
-            .frame(width: formatedWidth(geo))
-            // Right side: detail view, no search here to avoid conflicting focus
-            if !isPhone, let novel = viewModel.selectedNovel {
-                Divider()
-                BookDetailView(novel: novel) {
-                    // Prevent crash if novel is deleted
-                    viewModel.selectedNovel = nil
-                }
-                    .id(novel.identifier)
-                    .modelContext(modelContext)
-                    .frame(width: geo.size.width * 0.6)
-                    .transition(.move(edge: .trailing))
-            }
-        }
-    }
-
     func listView() -> some View {
-        GlassEffectContainer(spacing: 10) {
-            ForEach(viewModel.novels, id: \.identifier) { novel in
-                let des = { novel in
-                    BookDetailView(novel: novel) {
-                        // Prevent crash if novel is deleted
-                        viewModel.selectedNovel = nil
-                    }
+        ForEach(viewModel.novels, id: \.identifier) { novel in
+            NavigationLink(destination: bookDetailsDestination(novel)) {
+                BookTitleView(novel: novel)
                     .modelContext(modelContext)
-                }
-                if isPhone {
-                    NavigationLink(destination: des(novel)) {
-                        BookTitleView(novel: novel)
-                            .modelContext(modelContext)
-                    }
-                } else {
-                    BookTitleView(novel: novel)
-                        .modelContext(modelContext)
-                        .onTapGesture {
-                            viewModel.selectedNovel = novel
-                        }
-                }
             }
         }
+        .modifier(ConditionalGlassEffect())
+    }
+
+    func bookDetailsDestination(_ novel: NovelModel) -> some View {
+        BookDetailView(novel: novel) {
+            // Prevent crash if novel is deleted
+            viewModel.selectedNovel = nil
+        }
+        .modelContext(modelContext)
     }
 }
 

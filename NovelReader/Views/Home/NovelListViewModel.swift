@@ -17,10 +17,15 @@ class NovelListViewModel: ObservableObject {
     @Published var error: Error?
     @Published var searchQuery: String = ""
     @Published var selectedNovel: NovelModel?
+    @Published private var novelListServiceModel: NovelListModel?
+
+    private var type: NovelListType = .completed
     private var allNovels: [NovelModel] = []
-    private var page: Int = 1
-    private var pageSize: Int = 38
-    private var canLoadNextPage = true
+
+    private var canLoadNextPage: Bool {
+        guard let model = novelListServiceModel else { return true }
+        return model.currentPage < model.pageCount
+    }
 
     private var cancellables = Set<AnyCancellable>()
     private var searchCancellables: AnyCancellable?
@@ -41,23 +46,23 @@ class NovelListViewModel: ObservableObject {
     func refreshNovels(modelContext: ModelContext) {
         cancelServices()
         do {
+            try? modelContext.delete(model: NovelListModel.self)
             try modelContext.delete(model: NovelModel.self)
         } catch {
             debugPrint("Failed to delete NovelModel.")
         }
-        page = 1
-        canLoadNextPage = true
         isLoading = false
-        fetchNovels(modelContext: modelContext)
+        fetchNovels(modelContext)
     }
 
     // The context should be injected (from the SwiftUI environment)
     @MainActor
-    func fetchNovels(modelContext: ModelContext) {
-        guard cancellables.isEmpty, !isLoading && canLoadNextPage else { return }
+    func fetchNovels(_ modelContext: ModelContext) {
+        novelListServiceModel = NovelListModel.fetchModel(for: type, modelContext: modelContext)
+        guard let novelListServiceModel, cancellables.isEmpty, !isLoading && canLoadNextPage else { return }
         isLoading = true
         error = nil
-        NovelServices.syncNovelListPublisher(page: page, modelContext: modelContext)
+        NovelServices.syncNovelListPublisher(novelListServiceModel, modelContext: modelContext)
             .throttle(for: .seconds(2), scheduler: DispatchQueue.main, latest: false)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
@@ -65,13 +70,11 @@ class NovelListViewModel: ObservableObject {
                 self.isLoading = false
                 if case let .failure(err) = completion {
                     self.error = err
-                } else {
-                    self.page += 1
-                    self.canLoadNextPage = self.page < self.pageSize
                 }
                 self.cancellables.removeAll()
             }, receiveValue: {
                 do {
+                    // Fetch latest NovelListModel (assuming one per type or using identifier if available)
                     self.allNovels = try modelContext.fetch(self.fetchDescriptor)
                     self.filterNovels()
                 } catch {

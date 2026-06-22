@@ -27,11 +27,11 @@ struct LibaryView: View {
 
     var body: some View {
         NRScrollView(onBottomReached: {
-//            viewModel.fetchNovels(modelContext: modelContext)
+//            viewModel.fetchNovels(modelContext)
         }, content: scrollContent)
         .onAppear {
             if novels.isEmpty {
-//             viewModel.fetchNovels(modelContext: modelContext)
+//             viewModel.fetchNovels(modelContext)
             }
         }
         .navigationTitle(DataConstants.titleText.content + " \(novels.count)")
